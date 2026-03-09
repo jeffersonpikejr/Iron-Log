@@ -17,7 +17,7 @@
 html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
 #app{max-width:430px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-.header{padding:14px 14px 6px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.header{padding:14px 14px 6px;padding-top:calc(env(safe-area-inset-top,20px) + 10px);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .logo{font:800 19px 'Courier New',monospace;color:#eee;letter-spacing:-0.5px}
 .date-chip{font-size:12px;color:#888;background:var(--card);padding:5px 12px;border-radius:20px}
 .date-nav{display:flex;justify-content:center;gap:8px;padding:6px 14px 12px;flex-shrink:0}
@@ -60,7 +60,7 @@ textarea.num-input{font:14px -apple-system,sans-serif;resize:vertical}
 .vol-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
 .vol-bar{height:5px;background:#1a1a2e;border-radius:3px;overflow:hidden}
 .vol-fill{height:100%;border-radius:3px;transition:width 0.3s}
-.sess-head{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #181830;flex-shrink:0}
+.sess-head{padding:12px 14px;padding-top:calc(env(safe-area-inset-top,20px) + 10px);display:flex;align-items:center;gap:10px;border-bottom:1px solid #181830;flex-shrink:0}
 .back-btn{background:none;border:none;color:var(--accent);font-size:16px;cursor:pointer;padding:4px 8px;font-weight:700}
 .rest-bar{margin:0 10px 8px;background:#141428;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .rest-time{font:800 22px monospace;color:var(--accent)}
