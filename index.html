@@ -145,7 +145,31 @@ const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"
 const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Arms:[5,7],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7]};
 const RIR_OPTS=["0 (F)","1","1-2","2","2-3","3","3-5"];
 const REST_OPTS=[{label:"1:30",sec:90},{label:"3:00",sec:180},{label:"5:00",sec:300}];
-const DEFAULT_WEIGHTS=[95,105,115,125,135,155,185,225];
+// Exercise-specific seed weights from Jeff's gym tracker history
+const SEED_WEIGHTS={
+  "Incline DB Press":[100,110,120,130,140,150],
+  "Chest-Supported Row":[70,75,80,82.5,85,90],
+  "Machine Lateral Raise":[10,12,14,15.5,17,20],
+  "Rope Triceps Pushdown":[35,37.5,40,42.5,44,45.5,47.5,50],
+  "Incline DB Curl":[45,50,55,60,65],
+  "Landmine Press":[25,30,32.5,35,37.5,40],
+  "Machine Chest Press":[90,95,100,105,110,115,120],
+  "Low-Angle Cable Fly":[15,17.5,20,22.5,25],
+  "OH Rope Triceps Extension":[30,35,37.5,39,42.5,45],
+  "Neutral-Grip Pull-Ups":[0,5,10,15,20,25],
+  "Lat Pulldown":[85,90,95,97.5,100,105],
+  "Kneeling Cable Lat Pulldown":[40,45,50,52.5,55,60],
+  "Rear Delt Cable Fly":[70,80,85,90,100],
+  "DB Shrugs":[60,65,70,75,80,85],
+  "Pallof Press":[20,25,30,35,40],
+  "Safety Bar Squat":[115,125,135,140,145,155],
+  "Romanian Deadlift":[135,145,155,160,170,180,185],
+  "Walking Lunges":[70,80,90,95,100],
+  "Seated Leg Curl":[100,110,115,125,135,145],
+  "Seated Leg Extension":[90,100,105,110,115,120],
+  "Standing Calf Raise":[140,160,180,200,220,240],
+};
+const FALLBACK_WEIGHTS=[25,35,45,55,65,75,85,95];
 
 // ─── STORAGE ───
 const LS={get(k,d){try{const v=localStorage.getItem('ironlog-'+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem('ironlog-'+k,JSON.stringify(v))}catch{}}};
@@ -213,11 +237,35 @@ function getPR(exName){
   return best;
 }
 function getWeights(exName){
-  const mem=weightMemory[exName];
-  if(mem&&mem.length>=3)return mem.slice(-10);
+  // Start with exercise-specific seeds or fallback
+  let base = SEED_WEIGHTS[exName] || FALLBACK_WEIGHTS;
+  // Merge in any weights from previous sessions
   const prev=getPrev(exName);
-  if(prev?.sets[0]?.weight){const w=parseFloat(prev.sets[0].weight);return[w-10,w-5,w,w+5,w+10].filter(x=>x>0)}
-  return DEFAULT_WEIGHTS;
+  if(prev){
+    prev.sets.forEach(s=>{const w=parseFloat(s.weight);if(!isNaN(w)&&!base.includes(w))base=[...base,w]});
+  }
+  // Merge in any custom weight memory (even just 1 entry)
+  const mem=weightMemory[exName];
+  if(mem&&mem.length>0){
+    mem.forEach(w=>{if(!base.includes(w))base=[...base,w]});
+  }
+  // Also include weights from today's session for this exercise
+  const today=exSets(exName);
+  today.forEach(s=>{const w=parseFloat(s.weight);if(!isNaN(w)&&!base.includes(w))base=[...base,w]});
+  // Sort, dedupe, cap at 12
+  base=[...new Set(base)].sort((a,b)=>a-b);
+  if(base.length>12){
+    // Keep weights closest to the most recent value
+    const recent=today.length>0?parseFloat(today[today.length-1].weight):
+      (prev?.sets[0]?.weight?parseFloat(prev.sets[0].weight):null);
+    if(recent){
+      base.sort((a,b)=>Math.abs(a-recent)-Math.abs(b-recent));
+      base=base.slice(0,12).sort((a,b)=>a-b);
+    } else {
+      base=base.slice(-12);
+    }
+  }
+  return base;
 }
 function weeklyVol(){
   const start=new Date(V.date);start.setDate(V.date.getDate()-V.date.getDay());
@@ -532,6 +580,9 @@ function renderSession(app){
 
         // Next / Done
         panel.appendChild(h('button',{class:'next-btn',onClick:()=>{
+          // Explicitly capture any unsaved input values before re-render
+          const cwi=panel.querySelector('.weight-custom');
+          if(cwi&&cwi.value)setData(ex.name,V.curSet,'weight',parseFloat(cwi.value)||cwi.value);
           startRest(V.restDur);
           if(V.curSet<num-1){V.curSet++;render()}
           else{toast(ex.name+' logged');V.openEx=i+1<allEx.length?i+1:null;V.curSet=0;render()}
