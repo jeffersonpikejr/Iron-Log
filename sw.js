@@ -1,4 +1,4 @@
-const CACHE = 'ironlog-v5';
+const CACHE = 'ironlog-v7';
 const ASSETS = ['./index.html', './manifest.json', 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js'];
 
 self.addEventListener('install', e => {
