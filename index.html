@@ -98,12 +98,19 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 .reorder-btn:active{background:var(--accent);color:#fff}
 .reorder-toggle{background:none;border:1px solid #282838;color:#666;padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600}
 .reorder-toggle.on{border-color:var(--accent);color:var(--accent)}
+.prog-bar{display:flex;align-items:center;gap:8px;width:calc(100% - 28px);margin:0 14px 8px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:left}
+.prog-bar .plabel{font-size:9px;color:#666;letter-spacing:1.5px;font-weight:700;margin-bottom:2px}
+.prog-bar .pname{font-size:14px;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-btn{background:#1a1a2e;border:none;color:#888;font-size:13px;padding:6px 10px;border-radius:7px;cursor:pointer;font-weight:600;flex-shrink:0}
+.mini-btn:active{background:var(--accent);color:#fff}
+.mini-btn.del{color:var(--red)}
+.mini-btn.del:active{background:var(--red);color:#fff}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-const PROGRAM = {
+const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
       {name:"Zone 2 Cardio",rx:"45–60 min @ 65–75% HRmax",type:"cardio",sets:1},
@@ -197,12 +204,40 @@ let history=LS.get('history',{});
 let customExercises=LS.get('customs',[]);
 let weightMemory=LS.get('weights',{});
 let exerciseOrder=LS.get('order',{}); // {dayName: [exName1, exName2, ...]}
+
+// ─── PROGRAMS (multi-program support) ───
+// Each program = {name, days:{ "<workout key>":{color,icon,exercises:[{name,rx,type,sets}]} }, dayOrder:[keys]}
+// History / PRs / weight memory stay keyed by date + exercise name, so they are shared
+// across all programs and untouched by program changes.
+function seedPrograms(){const did='vo2max-low-vol';
+  return {active:did,order:[did],list:{[did]:{name:'VO2Max + Low Vol Lifting',
+    days:JSON.parse(JSON.stringify(DEFAULT_WORKOUTS)),dayOrder:Object.keys(DEFAULT_WORKOUTS)}}}}
+// Deep-validate / self-heal the persisted (untrusted) programs blob so a partial or
+// corrupt store can never brick boot or rendering. Falls back to a fresh seed only when
+// the active program is wholly unrecoverable — logged history is never touched.
+function sanitizePrograms(P){
+  if(!P||typeof P!=='object'||!P.list||typeof P.list!=='object')return seedPrograms();
+  Object.values(P.list).forEach(p=>{if(!p||typeof p!=='object')return;
+    if(!p.name)p.name='Program';
+    p.days=(p.days&&typeof p.days==='object')?p.days:{};
+    p.dayOrder=Array.isArray(p.dayOrder)?p.dayOrder:Object.keys(p.days);
+    Object.values(p.days).forEach(c=>{if(c&&typeof c==='object'&&!Array.isArray(c.exercises))c.exercises=[]})});
+  if(!Array.isArray(P.order))P.order=Object.keys(P.list);
+  if(!P.active||!P.list[P.active]||!P.list[P.active].days)P.active=Object.keys(P.list)[0];
+  if(!P.active||!P.list[P.active])return seedPrograms();
+  return P;
+}
+let programs=sanitizePrograms(LS.get('programs',null));
+let PROGRAM=programs.list[programs.active].days;
+function activeProg(){return programs.list[programs.active]}
+
 let _lsWarned=0;
-function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder)].every(Boolean);
+function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder),LS.set('programs',programs)].every(Boolean);
   if(!ok&&Date.now()-_lsWarned>5000){_lsWarned=Date.now();if(typeof toast==='function')toast('⚠️ Save failed — export your data')}}
 
 // ─── STATE ───
-let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false};
+let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false,
+  editWorkout:null,newProgOpen:false,addWkOpen:false,exEditIdx:null,wkEditOpen:false};
 function dk(){return V.date.toISOString().split('T')[0]}
 function sess(){return history[dk()]||{}}
 function exSets(n){return sess()[n]||[]}
@@ -232,6 +267,64 @@ function moveExercise(dayName,fromIdx,toIdx){
   exerciseOrder[dayName]=allEx.map(e=>e.name);
   save();render();
 }
+
+// ─── PROGRAM / WORKOUT / EXERCISE BUILDER ───
+const ICON_CHOICES=['🏋️','💪','🫁','💨','🧘','🔥','🦵','🏃','🔄','⚡','🚴','🏊','🤸','🥊','⛰️','🧗'];
+const COLOR_CHOICES=['#2563eb','#dc2626','#059669','#ea580c','#7c3aed','#0891b2','#db2777','#ca8a04','#16a34a','#6b7280'];
+function uid(p){return (p||'x')+Math.random().toString(36).slice(2,7)+Date.now().toString(36).slice(-2)}
+function wkName(key){const p=String(key).split(' - ');return p.length>1?p.slice(1).join(' - '):key}
+function wkLabel(key){const p=String(key).split(' - ');return p.length>1?p[0]:''}
+function orderedWorkouts(){const pr=activeProg();const seen=new Set(),ks=[];
+  (pr.dayOrder||[]).forEach(k=>{if(pr.days[k]&&!seen.has(k)){seen.add(k);ks.push(k)}});
+  Object.keys(pr.days).forEach(k=>{if(!seen.has(k)){seen.add(k);ks.push(k)}});return ks}
+
+function setActiveProgram(id){if(!programs.list[id])return;programs.active=id;PROGRAM=programs.list[id].days;V.day=null;save()}
+function createProgram(name){const id=uid('prog');programs.list[id]={name:(name||'').trim()||'New Program',days:{},dayOrder:[]};
+  programs.order=[...(programs.order||Object.keys(programs.list)).filter(x=>x!==id),id];setActiveProgram(id);return id}
+function renameProgram(id,name){if(programs.list[id]&&(name||'').trim()){programs.list[id].name=name.trim();save()}}
+function deleteProgram(id){if(Object.keys(programs.list).length<=1)return;delete programs.list[id];
+  programs.order=(programs.order||[]).filter(x=>x!==id);
+  if(programs.active===id){const rest=(programs.order||[]).filter(x=>programs.list[x]);setActiveProgram(rest[0]||Object.keys(programs.list)[0])}save()}
+
+function addWorkout(name,icon,color){const pr=activeProg();let base=(name||'').trim()||'New Workout',disp=base,n=2;
+  const taken=()=>Object.keys(pr.days).some(k=>wkName(k).toLowerCase()===disp.toLowerCase()); // dedupe on visible name
+  while(taken()){disp=base+' '+n;n++}
+  const key=disp;
+  const order=orderedWorkouts(); // capture before inserting the new day
+  pr.days[key]={color:color||'#6b7280',icon:icon||'🏋️',exercises:[]};
+  pr.dayOrder=[...order,key];save();return key}
+function updateWorkout(oldKey,name,icon,color){const pr=activeProg();const cfg=pr.days[oldKey];if(!cfg)return oldKey;
+  if(icon)cfg.icon=icon;if(color)cfg.color=color;
+  let key=oldKey;const fullNm=(name||'').trim();
+  if(fullNm&&fullNm!==oldKey){
+    const lbl=wkLabel(fullNm);let disp=wkName(fullNm),base=disp,n=2;
+    const taken=()=>Object.keys(pr.days).some(k=>k!==oldKey&&wkName(k).toLowerCase()===disp.toLowerCase());
+    while(taken()){disp=base+' '+n;n++}
+    const cand=lbl?lbl+' - '+disp:disp;
+    if(cand!==oldKey){key=cand;const order=orderedWorkouts(); // capture order (oldKey in place) before mutating days
+      pr.days[key]=cfg;delete pr.days[oldKey];
+      pr.dayOrder=order.map(k=>k===oldKey?key:k);
+      if(exerciseOrder[oldKey]){exerciseOrder[key]=exerciseOrder[oldKey];delete exerciseOrder[oldKey]}}}
+  save();return key}
+function deleteWorkout(key){const pr=activeProg();delete pr.days[key];
+  pr.dayOrder=(pr.dayOrder||[]).filter(k=>k!==key);delete exerciseOrder[key];save()}
+function moveWorkout(key,dir){const ks=orderedWorkouts();const i=ks.indexOf(key),j=i+dir;
+  if(i<0||j<0||j>=ks.length)return;ks.splice(j,0,ks.splice(i,1)[0]);activeProg().dayOrder=ks;save();render()}
+
+function addWorkoutExercise(wkey,ex){const cfg=activeProg().days[wkey];if(!cfg)return false;
+  const nm=(ex.name||'').trim();if(!nm)return false;
+  if(cfg.exercises.some(e=>e.name===nm)){toast('Already in this workout');return false}
+  cfg.exercises.push({name:nm,rx:(ex.rx||'').trim(),type:ex.type||'strength',sets:ex.sets||(ex.type==='cardio'||ex.type==='mobility'?1:2)});
+  if(!customExercises.includes(nm)&&!COMMON_EXTRAS.includes(nm))customExercises.push(nm);save();return true}
+function updateWorkoutExercise(wkey,idx,ex){const cfg=activeProg().days[wkey];if(!cfg||!cfg.exercises[idx])return false;
+  const cur=cfg.exercises[idx];
+  if(ex.name!=null){const nm=ex.name.trim()||cur.name;
+    if(nm!==cur.name&&cfg.exercises.some((e,j)=>j!==idx&&e.name===nm)){toast('Already in this workout');return false}
+    cur.name=nm}
+  if(ex.rx!=null)cur.rx=ex.rx.trim();if(ex.type)cur.type=ex.type;if(ex.sets!=null)cur.sets=ex.sets;save();return true}
+function deleteWorkoutExercise(wkey,idx){const cfg=activeProg().days[wkey];if(cfg&&cfg.exercises[idx]){cfg.exercises.splice(idx,1);save()}}
+function moveWorkoutExercise(wkey,idx,dir){const cfg=activeProg().days[wkey];if(!cfg)return;
+  const j=idx+dir;if(j<0||j>=cfg.exercises.length)return;cfg.exercises.splice(j,0,cfg.exercises.splice(idx,1)[0]);save();render()}
 
 // ─── DATA HELPERS ───
 function setData(exName,si,field,val){
@@ -334,7 +427,12 @@ function h(tag,attrs,...ch){
 
 // ─── RENDER ───
 function render(){const app=document.getElementById('app');
-  try{app.innerHTML='';if(V.view==='home')renderHome(app);else if(V.view==='session')renderSession(app)}
+  try{app.innerHTML='';
+    if(V.view==='home')renderHome(app);
+    else if(V.view==='session')renderSession(app);
+    else if(V.view==='programs')renderPrograms(app);
+    else if(V.view==='progEdit')renderProgramEditor(app);
+    else if(V.view==='workoutEdit')renderWorkoutEditor(app);}
   catch(err){console.error(err);app.innerHTML='';
     app.appendChild(h('div',{style:{padding:'40px 20px',color:'#ddd',textAlign:'center'}},
       h('div',{style:{fontSize:'14px',marginBottom:'4px'}},'Something went wrong.'),
@@ -358,9 +456,15 @@ function renderHome(app){
         h('button',{class:'data-btn',onClick:exportXlsx},'📊 Excel'),
         h('button',{class:'data-btn',onClick:exportJson},'↓ JSON'),
         h('button',{class:'data-btn',onClick:importJson},'↑ Import')),
-      cnt>0?h('button',{class:'remove-btn',onClick:()=>{if(confirm('Delete ALL data?')){history={};customExercises=[];weightMemory={};exerciseOrder={};save();V.showData=false;toast('Cleared');render()}}},'Clear All Data'):null,
+      cnt>0?h('button',{class:'remove-btn',onClick:()=>{if(confirm('Delete ALL logged data? (Your programs are kept)')){history={};customExercises=[];weightMemory={};exerciseOrder={};save();V.showData=false;toast('Cleared');render()}}},'Clear All Data'):null,
       h('div',{style:{marginTop:'8px',fontSize:'10px',color:'#444',lineHeight:'1.6'}},'Data saved to this device via localStorage.')));
   }
+
+  app.appendChild(h('button',{class:'prog-bar',onClick:()=>{V.view='programs';V.newProgOpen=false;render()}},
+    h('div',{style:{flex:1,minWidth:0}},
+      h('div',{class:'plabel'},'PROGRAM'),
+      h('div',{class:'pname'},activeProg().name)),
+    h('span',{style:{color:'#777',fontSize:'11px',fontWeight:600,whiteSpace:'nowrap'}},'switch ▾')));
 
   app.appendChild(h('div',{class:'date-nav'},
     h('button',{class:'date-btn',onClick:()=>{V.date=new Date(V.date);V.date.setDate(V.date.getDate()-1);render()}},'◀'),
@@ -368,16 +472,19 @@ function renderHome(app){
     h('button',{class:'date-btn',onClick:()=>{V.date=new Date(V.date);V.date.setDate(V.date.getDate()+1);render()}},'▶')));
 
   const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'0 14px'}});
-  Object.entries(PROGRAM).forEach(([dn,cfg])=>{
-    const t=cfg.exercises.length,done=doneCount(cfg.exercises),full=done===t&&t>0;
+  const wks=orderedWorkouts();
+  wks.forEach(dn=>{const cfg=PROGRAM[dn];if(!cfg)return;
+    const t=cfg.exercises.length,done=doneCount(cfg.exercises),full=done===t&&t>0,lbl=wkLabel(dn);
     list.appendChild(h('button',{class:'day-card',style:{borderLeft:'4px solid '+cfg.color,background:full?cfg.color+'08':'var(--card)'},
       onClick:()=>{V.day=dn;V.view='session';V.openEx=null;V.showAdd=false;V.addFilter='';V.reorder=false;render()}},
-      h('div',{class:'day-left'},h('span',{style:{fontSize:'20px'}},cfg.icon),h('div',null,h('div',{class:'day-name'},dn.split(' - ')[1]),h('div',{class:'day-num'},dn.split(' - ')[0]))),
+      h('div',{class:'day-left'},h('span',{style:{fontSize:'20px'}},cfg.icon),h('div',null,h('div',{class:'day-name'},wkName(dn)),lbl?h('div',{class:'day-num'},lbl):null)),
       h('div',{class:'day-right'},
         done>0?h('span',{style:{fontSize:'11px',color:cfg.color,fontWeight:600,fontFamily:'monospace'}},done+'/'+t):null,
         full?h('span',{style:{fontSize:'14px'}},'✓'):null,
         h('span',{style:{color:'#444',fontSize:'14px'}},'›'))));
   });
+  if(!wks.length)list.appendChild(h('div',{style:{padding:'20px 12px',textAlign:'center',color:'#666',fontSize:'12px'}},'No workouts in this program yet.'));
+  list.appendChild(h('button',{class:'add-btn',style:{marginTop:'6px'},onClick:()=>{V.view='progEdit';V.addWkOpen=false;V.editWorkout=null;render()}},'✎ Edit program · workouts'));
   scroll.appendChild(list);
   scroll.appendChild(h('button',{class:'vol-toggle',onClick:()=>{V.showVol=!V.showVol;render()}},(V.showVol?'Hide':'📊')+' Weekly Volume'));
   if(V.showVol){
@@ -401,7 +508,7 @@ function renderSession(app){
   app.appendChild(h('div',{class:'sess-head'},
     h('button',{class:'back-btn',onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;stopRest();render()}},'←'),
     h('div',{style:{flex:1}},
-      h('div',{style:{fontSize:'14px',fontWeight:700,color:'#eee'}},cfg.icon+' '+V.day.split(' - ')[1]),
+      h('div',{style:{fontSize:'14px',fontWeight:700,color:'#eee'}},cfg.icon+' '+wkName(V.day)),
       h('div',{style:{fontSize:'11px',color:'#666'}},fmtDate(V.date))),
     h('button',{class:'reorder-toggle'+(V.reorder?' on':''),onClick:()=>{V.reorder=!V.reorder;V.openEx=null;render()}},V.reorder?'Done':'↕ Order')));
 
@@ -580,8 +687,167 @@ function addExtra2(name,type){
   V.showAdd=false;V.addFilter='';save();toast(name+' added');render();}
 function removeExtra(exName){const d=dk();if(history[d]){history[d]._extras=(history[d]._extras||[]).filter(e=>e.name!==exName);delete history[d][exName]}V.openEx=null;save()}
 
+// ─── PROGRAM BUILDER UI ───
+function editorHead(title,onBack,right){
+  return h('div',{class:'sess-head'},
+    h('button',{class:'back-btn',onClick:onBack},'←'),
+    h('div',{style:{flex:1,minWidth:0}},h('div',{style:{fontSize:'14px',fontWeight:700,color:'#eee',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},title)),
+    right||null);
+}
+function iconPicker(cur,onPick){
+  const row=h('div',{class:'quick-row'});
+  ICON_CHOICES.forEach(ic=>{const b=h('button',{class:'q-btn'+(cur===ic?' on':''),style:{fontSize:'18px',minWidth:'40px'},
+    onClick:()=>{onPick(ic);row.querySelectorAll('.q-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on')}},ic);row.appendChild(b)});
+  return row;
+}
+function colorPicker(cur,onPick){
+  const row=h('div',{class:'quick-row'});
+  COLOR_CHOICES.forEach(c=>{const b=h('button',{onClick:()=>{onPick(c);row.querySelectorAll('button').forEach(x=>x.style.outline='none');b.style.outline='2px solid #fff'},
+    style:{width:'30px',height:'30px',borderRadius:'50%',border:'none',background:c,cursor:'pointer',outline:cur===c?'2px solid #fff':'none',outlineOffset:'2px',flexShrink:0}});row.appendChild(b)});
+  return row;
+}
+
+// Program switcher / list
+function renderPrograms(app){
+  app.appendChild(editorHead('Programs',()=>{V.view='home';render()},
+    h('button',{class:'reorder-toggle'+(V.newProgOpen?' on':''),onClick:()=>{V.newProgOpen=!V.newProgOpen;render()}},V.newProgOpen?'Cancel':'+ New')));
+  const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'10px 14px'}});
+
+  if(V.newProgOpen){
+    const ap=h('div',{class:'add-panel',style:{marginBottom:'12px'}});
+    const inp=h('input',{class:'inp',type:'text',placeholder:'Program name (e.g. Hypertrophy Block)'});
+    ap.appendChild(inp);setTimeout(()=>inp.focus(),50);
+    ap.appendChild(h('button',{class:'next-btn',onClick:()=>{const v=inp.value.trim();if(!v){toast('Name required');return}
+      createProgram(v);V.newProgOpen=false;V.view='progEdit';V.addWkOpen=true;V.editWorkout=null;render()}},'Create program →'));
+    list.appendChild(ap);
+  }
+
+  const ids=(programs.order&&programs.order.length?programs.order:Object.keys(programs.list)).filter(id=>programs.list[id]);
+  Object.keys(programs.list).forEach(id=>{if(!ids.includes(id))ids.push(id)});
+  ids.forEach(id=>{const p=programs.list[id],active=id===programs.active,nWk=Object.keys(p.days).length;
+    list.appendChild(h('div',{class:'day-card',style:{borderLeft:'4px solid '+(active?'var(--gold)':'#333'),cursor:'default'}},
+      h('button',{style:{flex:1,minWidth:0,background:'none',border:'none',textAlign:'left',cursor:'pointer',padding:0},
+        onClick:()=>{setActiveProgram(id);V.view='home';render()}},
+        h('div',{class:'day-name',style:{color:active?'var(--gold)':'#ddd'}},p.name),
+        h('div',{class:'day-num'},nWk+' workout'+(nWk===1?'':'s')+(active?' · ACTIVE':' · tap to use'))),
+      h('button',{class:'mini-btn',onClick:()=>{setActiveProgram(id);V.view='progEdit';V.addWkOpen=false;V.editWorkout=null;render()}},'✎ Edit')));
+  });
+  scroll.appendChild(list);app.appendChild(scroll);
+}
+
+// Program editor (edits the active program)
+function renderProgramEditor(app){
+  const pr=activeProg();
+  app.appendChild(editorHead(pr.name,()=>{V.view='programs';V.addWkOpen=false;render()},
+    h('button',{class:'reorder-toggle'+(V.addWkOpen?' on':''),onClick:()=>{V.addWkOpen=!V.addWkOpen;render()}},V.addWkOpen?'Cancel':'+ Workout')));
+  const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'10px 14px'}});
+
+  const head=h('div',{class:'add-panel',style:{marginBottom:'12px'}});
+  head.appendChild(h('label',{class:'field-label'},'PROGRAM NAME'));
+  const ni=h('input',{class:'inp',type:'text'});ni.value=pr.name;
+  ni.addEventListener('blur',e=>renameProgram(programs.active,e.target.value));
+  head.appendChild(ni);
+  if(Object.keys(programs.list).length>1)
+    head.appendChild(h('button',{class:'remove-btn',style:{marginTop:'10px'},onClick:()=>{
+      if(confirm('Delete program "'+pr.name+'"? Logged history is kept.')){deleteProgram(programs.active);V.view='programs';render()}}},'Delete this program'));
+  list.appendChild(head);
+
+  if(V.addWkOpen){
+    const st={icon:'🏋️',color:'#2563eb'};
+    const ap=h('div',{class:'add-panel',style:{marginBottom:'12px'}});
+    ap.appendChild(h('label',{class:'field-label'},'NEW WORKOUT NAME'));
+    const inp=h('input',{class:'inp',type:'text',placeholder:'e.g. Push A'});
+    ap.appendChild(inp);setTimeout(()=>inp.focus(),50);
+    ap.appendChild(h('label',{class:'field-label'},'ICON'));ap.appendChild(iconPicker(st.icon,ic=>st.icon=ic));
+    ap.appendChild(h('label',{class:'field-label'},'COLOR'));ap.appendChild(colorPicker(st.color,c=>st.color=c));
+    ap.appendChild(h('button',{class:'next-btn',onClick:()=>{const v=inp.value.trim();if(!v){toast('Name required');return}
+      const k=addWorkout(v,st.icon,st.color);V.addWkOpen=false;V.editWorkout=k;V.view='workoutEdit';V.exEditIdx=null;render()}},'Create workout →'));
+    list.appendChild(ap);
+  }
+
+  const wks=orderedWorkouts();
+  list.appendChild(h('div',{style:{fontSize:'10px',fontWeight:700,color:'#666',letterSpacing:'1px',margin:'4px 2px 8px'}},'WORKOUTS ('+wks.length+')'));
+  wks.forEach(key=>{const cfg=pr.days[key];
+    list.appendChild(h('div',{class:'day-card',style:{borderLeft:'4px solid '+cfg.color,cursor:'default'}},
+      h('div',{style:{display:'flex',flexDirection:'column',gap:'2px',marginRight:'6px'}},
+        h('button',{class:'reorder-btn',onClick:()=>moveWorkout(key,-1)},'▲'),
+        h('button',{class:'reorder-btn',onClick:()=>moveWorkout(key,1)},'▼')),
+      h('button',{style:{flex:1,minWidth:0,background:'none',border:'none',textAlign:'left',cursor:'pointer',padding:0},
+        onClick:()=>{V.editWorkout=key;V.view='workoutEdit';V.exEditIdx=null;render()}},
+        h('div',{class:'day-name'},cfg.icon+' '+wkName(key)),
+        h('div',{class:'day-num'},cfg.exercises.length+' exercise'+(cfg.exercises.length===1?'':'s'))),
+      h('span',{style:{color:'#444',fontSize:'15px'}},'›')));
+  });
+  if(!wks.length)list.appendChild(h('div',{style:{padding:'16px 12px',textAlign:'center',color:'#666',fontSize:'12px'}},'No workouts yet — tap "+ Workout".'));
+  scroll.appendChild(list);app.appendChild(scroll);
+}
+
+// Workout editor (edits exercises within a workout)
+function renderWorkoutEditor(app){
+  const pr=activeProg(),key=V.editWorkout,cfg=pr.days[key];
+  if(!cfg){V.view='progEdit';return renderProgramEditor(app)}
+  app.appendChild(editorHead(cfg.icon+' '+wkName(key),()=>{V.view='progEdit';V.exEditIdx=null;render()},
+    h('button',{class:'reorder-toggle'+(V.exEditIdx===-1?' on':''),onClick:()=>{V.exEditIdx=V.exEditIdx===-1?null:-1;render()}},V.exEditIdx===-1?'Cancel':'+ Exercise')));
+  const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'10px 14px'}});
+
+  const meta=h('div',{class:'add-panel',style:{marginBottom:'12px'}});
+  meta.appendChild(h('label',{class:'field-label'},'WORKOUT NAME'));
+  const ni=h('input',{class:'inp',type:'text'});ni.value=wkName(key);
+  ni.addEventListener('blur',e=>{const v=e.target.value.trim();if(v&&v!==wkName(key)){
+    const full=wkLabel(key)?wkLabel(key)+' - '+v:v;const nk=updateWorkout(key,full);V.editWorkout=nk;render()}});
+  meta.appendChild(ni);
+  meta.appendChild(h('label',{class:'field-label'},'ICON'));meta.appendChild(iconPicker(cfg.icon,ic=>{updateWorkout(key,null,ic);render()}));
+  meta.appendChild(h('label',{class:'field-label'},'COLOR'));meta.appendChild(colorPicker(cfg.color,c=>{updateWorkout(key,null,null,c);render()}));
+  meta.appendChild(h('button',{class:'remove-btn',style:{marginTop:'10px'},onClick:()=>{
+    if(confirm('Delete workout "'+wkName(key)+'"?')){deleteWorkout(key);V.view='progEdit';render()}}},'Delete this workout'));
+  list.appendChild(meta);
+
+  if(V.exEditIdx!=null){
+    const editing=V.exEditIdx>=0,ex=editing?cfg.exercises[V.exEditIdx]:{name:'',rx:'',type:'strength',sets:2};
+    const st={name:ex.name,rx:ex.rx,type:ex.type,sets:ex.sets};
+    const ap=h('div',{class:'add-panel',style:{marginBottom:'12px'}});
+    ap.appendChild(h('label',{class:'field-label'},editing?'EDIT EXERCISE':'NEW EXERCISE'));
+    const nmI=h('input',{class:'inp',type:'text',placeholder:'Exercise name'});nmI.value=st.name;nmI.addEventListener('input',e=>st.name=e.target.value);
+    ap.appendChild(nmI);if(!editing)setTimeout(()=>nmI.focus(),50);
+    ap.appendChild(h('label',{class:'field-label'},'PRESCRIPTION'));
+    const rxI=h('input',{class:'inp',type:'text',placeholder:'e.g. 2 × 6–8 | RIR 1'});rxI.value=st.rx;rxI.addEventListener('input',e=>st.rx=e.target.value);
+    ap.appendChild(rxI);
+    ap.appendChild(h('label',{class:'field-label'},'TYPE'));
+    const tr=h('div',{class:'quick-row'});
+    [['strength','🏋️ Strength'],['cardio','🫁 Cardio'],['mobility','🧘 Mobility']].forEach(([t,lbl])=>{
+      const b=h('button',{class:'q-btn'+(st.type===t?' on':''),onClick:()=>{st.type=t;tr.querySelectorAll('.q-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on')}},lbl);tr.appendChild(b)});
+    ap.appendChild(tr);
+    ap.appendChild(h('label',{class:'field-label'},'SETS'));
+    const sr=h('div',{class:'quick-row'});
+    [1,2,3,4,5].forEach(n=>{const b=h('button',{class:'q-btn'+(st.sets===n?' on':''),style:{minWidth:'40px'},onClick:()=>{st.sets=n;sr.querySelectorAll('.q-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on')}},String(n));sr.appendChild(b)});
+    ap.appendChild(sr);
+    ap.appendChild(h('button',{class:'next-btn',onClick:()=>{if(!st.name.trim()){toast('Name required');return}
+      const ok=editing?updateWorkoutExercise(key,V.exEditIdx,st):addWorkoutExercise(key,st);
+      if(ok===false)return; // duplicate/invalid — keep the form open (toast already shown)
+      V.exEditIdx=null;render()}},editing?'Save exercise':'Add exercise'));
+    list.appendChild(ap);
+  }
+
+  const exs=cfg.exercises;
+  list.appendChild(h('div',{style:{fontSize:'10px',fontWeight:700,color:'#666',letterSpacing:'1px',margin:'4px 2px 8px'}},'EXERCISES ('+exs.length+')'));
+  exs.forEach((ex,i)=>{
+    list.appendChild(h('div',{class:'ex-row'},
+      h('div',{style:{display:'flex',flexDirection:'column',gap:'2px',marginRight:'4px'}},
+        h('button',{class:'reorder-btn',onClick:()=>moveWorkoutExercise(key,i,-1)},'▲'),
+        h('button',{class:'reorder-btn',onClick:()=>moveWorkoutExercise(key,i,1)},'▼')),
+      h('button',{class:'ex-btn',style:{flex:1,minWidth:0},onClick:()=>{V.exEditIdx=i;render()}},
+        h('div',{style:{flex:1,minWidth:0}},
+          h('div',{class:'ex-name'},ex.name),
+          h('div',{class:'ex-rx'},(ex.type!=='strength'?ex.type+' · ':'')+(ex.rx||(ex.sets+' sets')))),
+        h('span',{style:{color:'#444',fontSize:'14px'}},'✎')),
+      h('button',{class:'mini-btn del',onClick:()=>{if(confirm('Remove "'+ex.name+'" from this workout?')){deleteWorkoutExercise(key,i);render()}}},'✕')));
+  });
+  if(!exs.length)list.appendChild(h('div',{style:{padding:'16px 12px',textAlign:'center',color:'#666',fontSize:'12px'}},'No exercises yet — tap "+ Exercise".'));
+  scroll.appendChild(list);app.appendChild(scroll);
+}
+
 // ─── EXPORT / IMPORT ───
-function exportJson(){const d=JSON.stringify({history,customExercises,weightMemory,exerciseOrder,exportedAt:new Date().toISOString()},null,2);
+function exportJson(){const d=JSON.stringify({history,customExercises,weightMemory,exerciseOrder,programs,exportedAt:new Date().toISOString()},null,2);
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([d],{type:'application/json'}));a.download='ironlog-'+dk()+'.json';a.click();toast('Exported!')}
 function importJson(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';
   inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
@@ -590,6 +856,13 @@ function importJson(){const inp=document.createElement('input');inp.type='file';
       if(d.customExercises)customExercises=[...new Set([...customExercises,...d.customExercises])];
       if(d.weightMemory)Object.keys(d.weightMemory).forEach(k=>{if(!weightMemory[k])weightMemory[k]=d.weightMemory[k];else weightMemory[k]=[...new Set([...weightMemory[k],...d.weightMemory[k]])].sort((a,b)=>a-b)});
       if(d.exerciseOrder)Object.keys(d.exerciseOrder).forEach(k=>{if(!exerciseOrder[k])exerciseOrder[k]=d.exerciseOrder[k]});
+      if(d.programs&&d.programs.list){const idMap={};
+        Object.keys(d.programs.list).forEach(id=>{const p=d.programs.list[id];if(!p||typeof p!=='object')return;
+          let nid=id;if(programs.list[nid]){nid=uid('prog');p.name=(p.name||'Program')+' (imported)'} // rename on id collision (e.g. seed id) instead of dropping
+          idMap[id]=nid;programs.list[nid]=p});
+        const inOrder=(d.programs.order||Object.keys(d.programs.list)).map(id=>idMap[id]).filter(Boolean);
+        programs.order=[...new Set([...(programs.order||[]),...inOrder])].filter(id=>programs.list[id]);
+        programs=sanitizePrograms(programs);PROGRAM=activeProg().days}
       save();toast('Imported!');render()}catch{toast('Invalid file')}};r.readAsText(f)};inp.click()}
 // SheetJS is loaded on demand (only when exporting to Excel) to keep first paint fast.
 const XLSX_URL='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
