@@ -7,12 +7,24 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IronLog">
 <meta name="theme-color" content="#0b0b18">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="A fast, installable hybrid-athlete gym tracker — log strength sets, Zone 2 / VO2max cardio, rest timers, weekly volume and PRs. Offline-first, data stays on your device.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="IRON·LOG">
+<meta property="og:description" content="A fast, installable hybrid-athlete gym tracker. Strength, Zone 2 / VO2max cardio, weekly volume — offline-first.">
+<meta property="og:url" content="https://jeffersonpikejr.github.io/Iron-Log/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IRON·LOG">
+<meta name="twitter:description" content="A fast, installable hybrid-athlete gym tracker. Strength, Zone 2 / VO2max cardio, weekly volume — offline-first.">
 <link rel="manifest" href="./manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230b0b18'/><g fill='%23818cf8'><rect x='14' y='34' width='7' height='32' rx='2'/><rect x='24' y='40' width='6' height='20' rx='2'/><rect x='70' y='40' width='6' height='20' rx='2'/><rect x='79' y='34' width='7' height='32' rx='2'/><rect x='30' y='46' width='40' height='8' rx='3'/></g></svg>">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="preconnect" href="https://cdn.sheetjs.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.sheetjs.com">
 <title>IRON·LOG</title>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#0b0b18;--card:#131324;--panel:#151530;--border:#1e1e36;--text:#ddd;--dim:#555;--accent:#818cf8;--green:#22c55e;--red:#dc2626;--amber:#f59e0b;--gold:#fbbf24}
+:root{color-scheme:dark;--bg:#0b0b18;--card:#131324;--panel:#151530;--border:#1e1e36;--text:#ddd;--dim:#555;--accent:#818cf8;--green:#22c55e;--red:#dc2626;--amber:#f59e0b;--gold:#fbbf24}
 html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
 #app{max-width:430px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
@@ -180,12 +192,14 @@ const SEED_WEIGHTS={
 const FALLBACK_WEIGHTS=[15,20,25,30,35,40,50,60];
 
 // ─── STORAGE ───
-const LS={get(k,d){try{const v=localStorage.getItem('ironlog-'+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem('ironlog-'+k,JSON.stringify(v))}catch{}}};
+const LS={get(k,d){try{const v=localStorage.getItem('ironlog-'+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem('ironlog-'+k,JSON.stringify(v));return true}catch(err){console.warn('LS write failed',err);return false}}};
 let history=LS.get('history',{});
 let customExercises=LS.get('customs',[]);
 let weightMemory=LS.get('weights',{});
 let exerciseOrder=LS.get('order',{}); // {dayName: [exName1, exName2, ...]}
-function save(){LS.set('history',history);LS.set('customs',customExercises);LS.set('weights',weightMemory);LS.set('order',exerciseOrder)}
+let _lsWarned=0;
+function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder)].every(Boolean);
+  if(!ok&&Date.now()-_lsWarned>5000){_lsWarned=Date.now();if(typeof toast==='function')toast('⚠️ Save failed — export your data')}}
 
 // ─── STATE ───
 let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false};
@@ -319,8 +333,14 @@ function h(tag,attrs,...ch){
 }
 
 // ─── RENDER ───
-function render(){const app=document.getElementById('app');app.innerHTML='';
-  if(V.view==='home')renderHome(app);else if(V.view==='session')renderSession(app)}
+function render(){const app=document.getElementById('app');
+  try{app.innerHTML='';if(V.view==='home')renderHome(app);else if(V.view==='session')renderSession(app)}
+  catch(err){console.error(err);app.innerHTML='';
+    app.appendChild(h('div',{style:{padding:'40px 20px',color:'#ddd',textAlign:'center'}},
+      h('div',{style:{fontSize:'14px',marginBottom:'4px'}},'Something went wrong.'),
+      h('div',{style:{fontSize:'11px',color:'#666',marginBottom:'16px'}},'Your data is safe on this device.'),
+      h('button',{class:'data-btn',style:{maxWidth:'200px',margin:'0 auto'},onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;render()}},'Reset view')))}}
+window.addEventListener('error',()=>{try{const app=document.getElementById('app');if(app&&!app.firstChild){V.view='home';V.openEx=null;render()}}catch(_){}});
 
 function renderHome(app){
   const today=isToday();
@@ -571,8 +591,18 @@ function importJson(){const inp=document.createElement('input');inp.type='file';
       if(d.weightMemory)Object.keys(d.weightMemory).forEach(k=>{if(!weightMemory[k])weightMemory[k]=d.weightMemory[k];else weightMemory[k]=[...new Set([...weightMemory[k],...d.weightMemory[k]])].sort((a,b)=>a-b)});
       if(d.exerciseOrder)Object.keys(d.exerciseOrder).forEach(k=>{if(!exerciseOrder[k])exerciseOrder[k]=d.exerciseOrder[k]});
       save();toast('Imported!');render()}catch{toast('Invalid file')}};r.readAsText(f)};inp.click()}
-function exportXlsx(){
-  if(typeof XLSX==='undefined'){toast('XLSX not loaded');return}const wb=XLSX.utils.book_new();
+// SheetJS is loaded on demand (only when exporting to Excel) to keep first paint fast.
+const XLSX_URL='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+let _xlsxP=null;
+function loadXLSX(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  if(_xlsxP)return _xlsxP;
+  _xlsxP=new Promise((res,rej)=>{const s=document.createElement('script');s.src=XLSX_URL;s.crossOrigin='anonymous';s.onload=()=>res(window.XLSX);s.onerror=()=>{_xlsxP=null;rej()};document.head.appendChild(s)});
+  return _xlsxP;
+}
+async function exportXlsx(){
+  let XLSX;try{XLSX=await loadXLSX()}catch{toast('Excel CDN unavailable — use JSON export');return}
+  const wb=XLSX.utils.book_new();
   const rows=[['Date','Day','Exercise','Set','Weight','Reps','RIR','Duration','Speed','Elevation','Notes','Muscles']];
   Object.keys(history).sort().forEach(d=>{const s=history[d],day=(s._day||'').split(' - ')[1]||'';
     Object.keys(s).forEach(ex=>{if(ex.startsWith('_'))return;const sets=s[ex];if(!Array.isArray(sets))return;
@@ -596,7 +626,16 @@ function exportXlsx(){
   XLSX.writeFile(wb,'IronLog-'+dk()+'.xlsx');toast('Excel exported!')}
 
 render();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator){
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    // Reload once when a NEW worker takes over an already-controlled page (a deploy landed),
+    // but not on the very first install (no prior controller existed).
+    if(refreshing||!navigator.serviceWorker.controller)return;
+    refreshing=true;window.location.reload();
+  });
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>

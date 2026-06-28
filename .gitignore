@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs / misc
+*.log
+node_modules/
+.cache/
+
+# Local Claude Code tooling (preview launch config, etc.)
+.claude/
