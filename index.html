@@ -122,7 +122,7 @@ const DEFAULT_WORKOUTS = {
     ]},
   "Day 2 - 4x4 + Pull": {
     color:"#dc2626",icon:"💨",exercises:[
-      {name:"4×4 Protocol",rx:"4 min @ 90–95% HRmax | 3 min easy jog",type:"cardio",sets:1},
+      {name:"4×4 Protocol",rx:"4→5 × [4min @90–95% HRmax / 3min jog] · +1 interval q1–2wk, cap 5",type:"cardio",sets:1},
       {name:"Neutral-Grip Pull-Ups",rx:"2 × 6–8 | RIR 1",type:"strength",sets:2},
       {name:"DB Pullover",rx:"1–2 × 8–10 | RIR 1",type:"strength",sets:2},
       {name:"Incline DB Row",rx:"2 × 12–15",type:"strength",sets:2},
@@ -166,7 +166,7 @@ const DEFAULT_WORKOUTS = {
 };
 // Old defaults + common extras (all available via + Add Exercise)
 const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
-const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Delts"],"Cable Shrugs":["Delts"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"]};
+const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"]};
 const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Arms:[5,7],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7]};
 const RIR_OPTS=["0 (F)","1","1-2","2","2-3","3","3-5"];
 const REST_OPTS=[{label:"1:30",sec:90},{label:"3:00",sec:180},{label:"5:00",sec:300}];
@@ -230,6 +230,61 @@ function sanitizePrograms(P){
 let programs=sanitizePrograms(LS.get('programs',null));
 let PROGRAM=programs.list[programs.active].days;
 function activeProg(){return programs.list[programs.active]}
+
+// Panel-optimized revision — injected once alongside the current program so it can be A/B'd.
+// Respects deletion via the _v2seeded flag (won't re-add if the user removes it).
+const V2_ID='vo2max-v2';
+const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
+  'Day 1 - Zone 2 + Arms/Delts','Day 2 - 4×4 + Pull','Day 3 - Lower (heavy)','Day 4 - Recovery + Mobility','Day 5 - Threshold/VO2 + Push','Day 6 - LSD','Day 7 - Full Rest'],
+  days:{
+  'Day 1 - Zone 2 + Arms/Delts':{color:'#2563eb',icon:'🫁',exercises:[
+    {name:'Zone 2 Cardio',rx:'45–60 min @ 65–72% HRmax (bike or run)',type:'cardio',sets:1},
+    {name:'Incline DB Press',rx:'2 × 6–8 | RIR 1',type:'strength',sets:2},
+    {name:'Single-Arm DB Row',rx:'3 × 6–8 | RIR 1',type:'strength',sets:3},
+    {name:'Machine Lateral Raise',rx:'3 × 12–15 | to failure',type:'strength',sets:3},
+    {name:'Rear Delt Cable Fly',rx:'2 × 12–15',type:'strength',sets:2},
+    {name:'Rope Triceps Pushdown',rx:'1–2 × 10–12 | to failure',type:'strength',sets:2},
+    {name:'Incline DB Curl',rx:'2 × 10–12 | RIR 0–1',type:'strength',sets:2}]},
+  'Day 2 - 4×4 + Pull':{color:'#dc2626',icon:'💨',exercises:[
+    {name:'Warm-up + Strides',rx:'12–15 min easy→moderate + 3 × 20s strides',type:'cardio',sets:1},
+    {name:'4×4 Protocol',rx:'4→5 × [4min @90–95% HRmax / 3min jog] · +1 interval q1–2wk, cap 5',type:'cardio',sets:1},
+    {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–8 | RIR 1',type:'strength',sets:2},
+    {name:'Lat Pulldown',rx:'2 × 8–10 | RIR 1',type:'strength',sets:2},
+    {name:'Incline DB Row',rx:'2 × 12–15',type:'strength',sets:2},
+    {name:'DB Pullover',rx:'1–2 × 8–10 | RIR 1',type:'strength',sets:2},
+    {name:'Pallof Press',rx:'2 × 12/side',type:'strength',sets:2}]},
+  'Day 3 - Lower (heavy)':{color:'#7c3aed',icon:'🦵',exercises:[
+    {name:'Safety Bar Squat',rx:'2 × 5–6 | RPE 7.5–8',type:'strength',sets:2},
+    {name:'Seated Leg Curl',rx:'3 × 10–12 | near failure',type:'strength',sets:3},
+    {name:'45° Back Extension',rx:'2 × 8–10 | RIR 1–2 (or RDL @ RIR 2)',type:'strength',sets:2},
+    {name:'Walking Lunges',rx:'1–2 × 10/leg | RIR 1',type:'strength',sets:2},
+    {name:'Seated Leg Extension',rx:'1–2 × 10–12 | RIR 0–1',type:'strength',sets:2},
+    {name:'Seated Calf Raise',rx:'2–3 × 8–12 | RIR 2–3 (soleus)',type:'strength',sets:3},
+    {name:'Standing Calf Raise',rx:'2 × 12–15 (gastroc)',type:'strength',sets:2}]},
+  'Day 4 - Recovery + Mobility':{color:'#059669',icon:'🧘',exercises:[
+    {name:'Zone 2 Cardio',rx:'45–60 min @ 65–72% HRmax (easy)',type:'cardio',sets:1},
+    {name:'Mobility Circuit',rx:'10 min | hip CARs, ankle, t-spine',type:'mobility',sets:1},
+    {name:'Cable Hip Abduction',rx:'2 × 12–15 | near failure',type:'strength',sets:2},
+    {name:'Copenhagen Plank',rx:'2 × 20 sec/side',type:'mobility',sets:2},
+    {name:'Tibialis Raises',rx:'2 × 15',type:'mobility',sets:2},
+    {name:'Single-Leg RDL (light)',rx:'2 × 8/side',type:'mobility',sets:2},
+    {name:'Scapular Wall Slides',rx:'2 × 12',type:'mobility',sets:2}]},
+  'Day 5 - Threshold/VO2 + Push':{color:'#ea580c',icon:'🔥',exercises:[
+    {name:'Warm-up',rx:'8–10 min progressive',type:'cardio',sets:1},
+    {name:'Threshold / VO2 (alternating)',rx:'Even wk: 2×15 @ LT-5 · Odd wk: 30/15 ×12–16 @ 92–95%',type:'cardio',sets:1},
+    {name:'Cable Chest Press',rx:'2 × 6–8 | RIR 1',type:'strength',sets:2},
+    {name:'Low-Angle Cable Fly',rx:'1–2 × 12–15 | to failure',type:'strength',sets:2},
+    {name:'OH Rope Triceps Extension',rx:'1–2 × 10–12 | RIR 1',type:'strength',sets:2}]},
+  'Day 6 - LSD':{color:'#0891b2',icon:'🏃',exercises:[
+    {name:'Long Slow Distance',rx:'60–75 min @ 65–70% HRmax · cap drift by pace',type:'cardio',sets:1}]},
+  'Day 7 - Full Rest':{color:'#6b7280',icon:'🔄',exercises:[
+    {name:'Full Rest',rx:'Walk · daylight · sleep only (parasympathetic reset)',type:'mobility',sets:1}]}
+}};
+if(!programs._v2seeded){
+  if(!programs.list[V2_ID]){programs.list[V2_ID]=JSON.parse(JSON.stringify(V2_PROGRAM));
+    if(!programs.order.includes(V2_ID))programs.order.push(V2_ID);}
+  programs._v2seeded=true;LS.set('programs',programs);
+}
 
 let _lsWarned=0;
 function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder),LS.set('programs',programs)].every(Boolean);
