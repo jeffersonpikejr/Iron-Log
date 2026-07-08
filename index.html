@@ -262,7 +262,7 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
     {name:'Seated Calf Raise',rx:'2–3 × 8–12 | RIR 2–3 (soleus)',type:'strength',sets:3},
     {name:'Standing Calf Raise',rx:'2 × 12–15 (gastroc)',type:'strength',sets:2}]},
   'Day 4 - Recovery + Mobility':{color:'#059669',icon:'🧘',exercises:[
-    {name:'Zone 2 Cardio',rx:'45–60 min @ 65–72% HRmax (easy)',type:'cardio',sets:1},
+    {name:'Zone 2 Recovery',rx:'45–60 min @ 65–72% HRmax (easy)',type:'cardio',sets:1},
     {name:'Mobility Circuit',rx:'10 min | hip CARs, ankle, t-spine',type:'mobility',sets:1},
     {name:'Cable Hip Abduction',rx:'2 × 12–15 | near failure',type:'strength',sets:2},
     {name:'Copenhagen Plank',rx:'2 × 20 sec/side',type:'mobility',sets:2},
@@ -285,6 +285,12 @@ if(!programs._v2seeded){
     if(!programs.order.includes(V2_ID))programs.order.push(V2_ID);}
   programs._v2seeded=true;LS.set('programs',programs);
 }
+// Migration: v2 Day 4 "Zone 2 Cardio" shared Day 1's exact name, so a single day's Zone 2 log
+// marked both workouts' session done. Rename the recovery session to a distinct name so each is
+// tracked independently. Idempotent — no-ops once renamed. (Past logs stay under "Zone 2 Cardio".)
+(function(){const p=programs.list[V2_ID];const d4=p&&p.days&&p.days['Day 4 - Recovery + Mobility'];
+  if(d4&&Array.isArray(d4.exercises)){const ex=d4.exercises.find(e=>e.name==='Zone 2 Cardio');
+    if(ex){ex.name='Zone 2 Recovery';LS.set('programs',programs);}}})();
 
 let _lsWarned=0;
 function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder),LS.set('programs',programs)].every(Boolean);
