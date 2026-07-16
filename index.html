@@ -249,7 +249,7 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
     {name:'Warm-up + Strides',rx:'12–15 min easy→moderate + 3 × 20s strides',type:'cardio',sets:1},
     {name:'4×4 Protocol',rx:'4→5 × [4min @90–95% HRmax / 3min jog] · +1 interval q1–2wk, cap 5',type:'cardio',sets:1},
     {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–8 | RIR 1',type:'strength',sets:2},
-    {name:'Lat Pulldown',rx:'2 × 8–10 | RIR 1',type:'strength',sets:2},
+    {name:'Kneeling Cable Lat Pulldown',rx:'2 × 8–10 | RIR 1',type:'strength',sets:2},
     {name:'Incline DB Row',rx:'2 × 12–15',type:'strength',sets:2},
     {name:'DB Pullover',rx:'1–2 × 8–10 | RIR 1',type:'strength',sets:2},
     {name:'Pallof Press',rx:'2 × 12/side',type:'strength',sets:2}]},
@@ -291,6 +291,11 @@ if(!programs._v2seeded){
 (function(){const p=programs.list[V2_ID];const d4=p&&p.days&&p.days['Day 4 - Recovery + Mobility'];
   if(d4&&Array.isArray(d4.exercises)){const ex=d4.exercises.find(e=>e.name==='Zone 2 Cardio');
     if(ex){ex.name='Zone 2 Recovery';LS.set('programs',programs);}}})();
+// Equipment: gym has no lat pulldown machine. Swap v2 Day 2's vertical pull to a cable-tower version
+// (uses the high pulley already used for rope pushdowns) so the added back volume is preserved. Idempotent.
+(function(){const p=programs.list[V2_ID];const d2=p&&p.days&&p.days['Day 2 - 4×4 + Pull'];
+  if(d2&&Array.isArray(d2.exercises)){const ex=d2.exercises.find(e=>e.name==='Lat Pulldown');
+    if(ex){ex.name='Kneeling Cable Lat Pulldown';LS.set('programs',programs);}}})();
 
 let _lsWarned=0;
 function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder),LS.set('programs',programs)].every(Boolean);
@@ -598,7 +603,10 @@ function renderSession(app){
     }
 
     const btn=h('button',{class:'ex-btn',style:{borderLeft:'3px solid '+(hasData?'var(--green)':ex.isExtra?'var(--amber)':cfg.color)},
-      onClick:()=>{if(V.reorder)return;V.openEx=isOpen?null:i;V.curSet=0;render()}},
+      onClick:()=>{if(V.reorder)return;
+        if(!isOpen){const a=sess()[ex.name];if(Array.isArray(a)){const c=a.filter(s=>s&&(s.weight||s.reps));
+          if(c.length!==a.length){if(c.length)history[dk()][ex.name]=c;else delete history[dk()][ex.name];save()}}}
+        V.openEx=isOpen?null:i;V.curSet=0;render()}},
       h('div',{style:{flex:1}},
         h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},h('span',{class:'ex-name'},ex.name),ex.isExtra?h('span',{class:'extra-tag'},'EXTRA'):null),
         h('div',{class:'ex-rx'},ex.rx),
@@ -644,10 +652,13 @@ function renderSession(app){
             box.appendChild(h('div',{class:'vals pr'},pr.weight+'lb × '+pr.reps+' reps ('+pr.date+')'))}
           panel.appendChild(box)}
 
-        const num=Math.max(ex.sets||2,sets.length);
+        // Count only real (non-empty) sets + the one you're on, so accidental taps / empty padding
+        // can't inflate the count and strand you on phantom sets. Tab taps clamp to the next open slot.
+        const filledSets=sets.filter(s=>s&&(s.weight||s.reps)).length;
+        const num=Math.max(ex.sets||2,filledSets,V.curSet+1);
         const tabs=h('div',{class:'set-tabs'});
         for(let si=0;si<=num;si++){const s=sets[si],filled=s&&(s.weight||s.reps);
-          tabs.appendChild(h('button',{class:'set-tab'+(V.curSet===si?' active':filled?' done':''),onClick:()=>{V.curSet=si;render()}},si<num?'S'+(si+1):'+'))}
+          tabs.appendChild(h('button',{class:'set-tab'+(V.curSet===si?' active':filled?' done':''),onClick:()=>{V.curSet=Math.min(si,filledSets);render()}},si<num?'S'+(si+1):'+'))}
         panel.appendChild(tabs);
 
         const cur=sets[V.curSet]||{};const weights=getWeights(ex.name);const isLast=V.curSet>=num-1;
