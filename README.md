@@ -9,7 +9,8 @@ A fast, offline-first **hybrid-athlete gym tracker** — log strength work and c
 - **Day-by-day logging** — sets, weight, reps, RIR for lifts; duration / speed / elevation for cardio
 - **Per-exercise references** — last session + PRs surfaced inline as you log
 - **Custom exercises** and reorderable exercise lists
-- **Weekly volume** rollups by muscle group and an **all-time PR** sheet
+- **Weekly volume** rollups by muscle group (all worked muscles — push, pull, legs, traps, calves & core — for the Sun–Sat week you're viewing) and an **all-time PR** sheet
+- **Recovery day toggle** — flag a day as under-recovered to switch each session to a streamlined version (fewer working sets, easier cardio targets); per-exercise streamlined prescriptions are editable in the workout builder
 - **Export** — one-click `.xlsx` (Training Log + Weekly Volume + PRs) or `.json` backup; **import** to merge a backup back in
 - **Installable PWA** — add to home screen, works fully offline
 - **Local-first & private** — all data persists in `localStorage` on your device; nothing is sent anywhere

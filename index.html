@@ -166,8 +166,25 @@ const DEFAULT_WORKOUTS = {
 };
 // Old defaults + common extras (all available via + Add Exercise)
 const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
-const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"]};
-const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Arms:[5,7],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7]};
+const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"]};
+// Weekly set targets [min,max] per muscle. Every muscle MUSCLE_MAP can produce is listed here so
+// nothing logged is silently dropped from the rollup (Traps/Calves/Core were previously untracked).
+const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Traps:[4,8],Arms:[5,7],Core:[6,12],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7],Calves:[6,10]};
+// Streamlined "recovery day" prescriptions, used when a day is flagged suboptimal-recovery.
+// Resolution order at render: exercise.rxLite/setsLite (user-set) → RECOVERY_MAP[name] → auto-derive.
+// Mostly converts hard conditioning to easy aerobic work; strength lifts auto-halve their sets.
+const RECOVERY_MAP={
+  "Zone 2 Cardio":{rx:"30–40 min @ 60–68% HRmax (very easy)"},
+  "Zone 2 Cardio (Long)":{rx:"30–45 min @ 60–68% HRmax (very easy)"},
+  "Zone 2 Recovery":{rx:"25–35 min @ 60–68% HRmax (very easy)"},
+  "4×4 Protocol":{rx:"Swap → 30–40 min Zone 2 @ 65–72% (skip intervals)"},
+  "4x4 Protocol":{rx:"Swap → 30–40 min Zone 2 @ 65–72% (skip intervals)"},
+  "Threshold Run":{rx:"Swap → 30 min easy Zone 2 (no threshold)"},
+  "Threshold / VO2 (alternating)":{rx:"Swap → 30 min easy Zone 2 (no intervals)"},
+  "Warm-up + Strides":{rx:"10 min easy · skip strides"},
+  "Warm-up":{rx:"8–10 min very easy"},
+  "Long Slow Distance":{rx:"40–50 min @ 60–68% HRmax (cut short)"},
+};
 const RIR_OPTS=["0 (F)","1","1-2","2","2-3","3","3-5"];
 const REST_OPTS=[{label:"1:30",sec:90},{label:"3:00",sec:180},{label:"5:00",sec:300}];
 const SEED_WEIGHTS={
@@ -308,6 +325,7 @@ function dk(){return V.date.toISOString().split('T')[0]}
 function sess(){return history[dk()]||{}}
 function exSets(n){return sess()[n]||[]}
 function fmtDate(d){const m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],w=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];return w[d.getDay()]+', '+m[d.getMonth()]+' '+d.getDate()}
+function fmtMD(d){const m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return m[d.getMonth()]+' '+d.getDate()}
 function fmtTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function isToday(){const t=new Date(),d=V.date;return t.getFullYear()===d.getFullYear()&&t.getMonth()===d.getMonth()&&t.getDate()===d.getDate()}
 
@@ -380,14 +398,20 @@ function moveWorkout(key,dir){const ks=orderedWorkouts();const i=ks.indexOf(key)
 function addWorkoutExercise(wkey,ex){const cfg=activeProg().days[wkey];if(!cfg)return false;
   const nm=(ex.name||'').trim();if(!nm)return false;
   if(cfg.exercises.some(e=>e.name===nm)){toast('Already in this workout');return false}
-  cfg.exercises.push({name:nm,rx:(ex.rx||'').trim(),type:ex.type||'strength',sets:ex.sets||(ex.type==='cardio'||ex.type==='mobility'?1:2)});
+  const item={name:nm,rx:(ex.rx||'').trim(),type:ex.type||'strength',sets:ex.sets||(ex.type==='cardio'||ex.type==='mobility'?1:2)};
+  if(ex.rxLite&&ex.rxLite.trim())item.rxLite=ex.rxLite.trim();
+  if(ex.setsLite!=null&&ex.setsLite!=='')item.setsLite=Math.max(1,parseInt(ex.setsLite)||1);
+  cfg.exercises.push(item);
   if(!customExercises.includes(nm)&&!COMMON_EXTRAS.includes(nm))customExercises.push(nm);save();return true}
 function updateWorkoutExercise(wkey,idx,ex){const cfg=activeProg().days[wkey];if(!cfg||!cfg.exercises[idx])return false;
   const cur=cfg.exercises[idx];
   if(ex.name!=null){const nm=ex.name.trim()||cur.name;
     if(nm!==cur.name&&cfg.exercises.some((e,j)=>j!==idx&&e.name===nm)){toast('Already in this workout');return false}
     cur.name=nm}
-  if(ex.rx!=null)cur.rx=ex.rx.trim();if(ex.type)cur.type=ex.type;if(ex.sets!=null)cur.sets=ex.sets;save();return true}
+  if(ex.rx!=null)cur.rx=ex.rx.trim();if(ex.type)cur.type=ex.type;if(ex.sets!=null)cur.sets=ex.sets;
+  if(ex.rxLite!=null){const v=ex.rxLite.trim();if(v)cur.rxLite=v;else delete cur.rxLite}
+  if(ex.setsLite!=null){if(ex.setsLite==='')delete cur.setsLite;else cur.setsLite=Math.max(1,parseInt(ex.setsLite)||1)}
+  save();return true}
 function deleteWorkoutExercise(wkey,idx){const cfg=activeProg().days[wkey];if(cfg&&cfg.exercises[idx]){cfg.exercises.splice(idx,1);save()}}
 function moveWorkoutExercise(wkey,idx,dir){const cfg=activeProg().days[wkey];if(!cfg)return;
   const j=idx+dir;if(j<0||j>=cfg.exercises.length)return;cfg.exercises.splice(j,0,cfg.exercises.splice(idx,1)[0]);save();render()}
@@ -445,9 +469,16 @@ function getWeights(exName){
   }
   return base;
 }
+// Sun→Sat window for the week containing `date`, anchored to LOCAL midnight so it never depends on
+// the current time of day. (The old version carried V.date's time into the bounds, which dropped
+// same-week Sunday sets whenever the app was opened after noon.) Logged days compare at noon.
+function weekRange(date){
+  const s=new Date(date.getFullYear(),date.getMonth(),date.getDate()-date.getDay());
+  const e=new Date(s.getFullYear(),s.getMonth(),s.getDate()+6);e.setHours(23,59,59,999);
+  return{start:s,end:e};
+}
 function weeklyVol(){
-  const start=new Date(V.date);start.setDate(V.date.getDate()-V.date.getDay());
-  const end=new Date(start);end.setDate(start.getDate()+6);const vol={};
+  const {start,end}=weekRange(V.date);const vol={};
   Object.keys(history).forEach(d=>{const dt=new Date(d+'T12:00:00');
     if(dt>=start&&dt<=end){Object.keys(history[d]).forEach(ex=>{if(ex.startsWith('_'))return;
       (MUSCLE_MAP[ex]||[]).forEach(m=>{const sets=Array.isArray(history[d][ex])?history[d][ex].filter(s=>s.weight||s.reps):[];vol[m]=(vol[m]||0)+sets.length})})}});
@@ -456,6 +487,30 @@ function weeklyVol(){
 function doneCount(exercises){const s=sess();return exercises.filter(ex=>{const d=s[ex.name];if(!d)return false;
   if(ex.type==='cardio'||ex.type==='mobility')return d.length>0&&(d[0].notes||d[0].duration);
   return d.length>0&&d.some(x=>x.weight||x.reps)}).length}
+
+// ─── RECOVERY (streamlined-day) MODE ───
+// A day can be flagged as suboptimal-recovery. When on, sessions render a streamlined version of each
+// exercise: fewer working sets and easier targets. The flag lives on the day's session record so it
+// travels with JSON export/import and is remembered per date.
+function isRecovery(){return sess()._recovery===true}
+function toggleRecovery(){const d=dk();
+  if(!(history[d]&&history[d]._recovery)){if(!history[d])history[d]={_day:V.day};history[d]._recovery=true;}
+  else{delete history[d]._recovery;
+    // Drop a session record we created only to hold the flag (no exercises / extras logged).
+    if(Object.keys(history[d]).filter(k=>k!=='_day').length===0)delete history[d];}
+  save();render();}
+// Streamlined set count for an exercise: explicit setsLite → RECOVERY_MAP → auto (≈half, min 1).
+function liteSets(ex){
+  if(ex.setsLite!=null&&ex.setsLite!=='')return Math.max(1,parseInt(ex.setsLite)||1);
+  const m=RECOVERY_MAP[ex.name];if(m&&m.sets!=null)return Math.max(1,m.sets);
+  return ex.type==='strength'?Math.max(1,Math.ceil((ex.sets||2)/2)):(ex.sets||1);
+}
+// Streamlined prescription text, or null to keep the normal rx (just with fewer sets).
+function liteRx(ex){
+  if(ex.rxLite&&ex.rxLite.trim())return ex.rxLite.trim();
+  const m=RECOVERY_MAP[ex.name];if(m&&m.rx)return m.rx;
+  return null;
+}
 
 // ─── REST TIMER ───
 let restIv=null;
@@ -538,6 +593,12 @@ function renderHome(app){
     h('button',{class:'date-btn',onClick:()=>{V.date=new Date(V.date);V.date.setDate(V.date.getDate()+1);render()}},'▶')));
 
   const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'0 14px'}});
+  const rec=isRecovery();
+  list.appendChild(h('button',{onClick:toggleRecovery,
+    style:{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',padding:'9px',marginBottom:'8px',
+      borderRadius:'10px',cursor:'pointer',fontSize:'12px',fontWeight:600,
+      border:'1px solid '+(rec?'#f59e0b55':'#282838'),background:rec?'#f59e0b12':'transparent',color:rec?'var(--amber)':'#666'}},
+    rec?'🌙 Recovery day — sessions streamlined (tap to undo)':'🌙 Under-recovered? Tap for a streamlined day'));
   const wks=orderedWorkouts();
   wks.forEach(dn=>{const cfg=PROGRAM[dn];if(!cfg)return;
     const t=cfg.exercises.length,done=doneCount(cfg.exercises),full=done===t&&t>0,lbl=wkLabel(dn);
@@ -554,14 +615,25 @@ function renderHome(app){
   scroll.appendChild(list);
   scroll.appendChild(h('button',{class:'vol-toggle',onClick:()=>{V.showVol=!V.showVol;render()}},(V.showVol?'Hide':'📊')+' Weekly Volume'));
   if(V.showVol){
-    const wv=weeklyVol(),card=h('div',{class:'vol-card'});
-    card.appendChild(h('div',{style:{fontSize:'11px',fontWeight:700,color:'#777',marginBottom:'10px',letterSpacing:'1px'}},'WEEKLY SETS · BLOCK 1'));
-    Object.entries(VOL_TARGETS).forEach(([m,[min,max]])=>{
+    const wv=weeklyVol(),card=h('div',{class:'vol-card'}),{start,end}=weekRange(V.date);
+    card.appendChild(h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'10px'}},
+      h('span',{style:{fontSize:'11px',fontWeight:700,color:'#777',letterSpacing:'1px'}},'WEEKLY SETS · BY MUSCLE'),
+      h('span',{style:{fontSize:'10px',color:'#555',fontFamily:'monospace'}},fmtMD(start)+' – '+fmtMD(end))));
+    const shown={};
+    Object.entries(VOL_TARGETS).forEach(([m,[min,max]])=>{shown[m]=1;
       const c=wv[m]||0,pct=Math.min(c/max*100,100),clr=c>max?'var(--amber)':c<min?'#444':'var(--green)';
       card.appendChild(h('div',{class:'vol-row'},
         h('div',{class:'vol-header'},h('span',{style:{color:'#aaa'}},m),h('span',{style:{color:clr,fontWeight:600,fontFamily:'monospace'}},c+'/'+min+'–'+max)),
         h('div',{class:'vol-bar'},h('div',{class:'vol-fill',style:{width:pct+'%',background:clr}}))));
     });
+    // Any muscle worked this week that has no defined target still shows, so nothing is silently dropped.
+    Object.keys(wv).forEach(m=>{if(shown[m]||!wv[m])return;
+      card.appendChild(h('div',{class:'vol-row'},
+        h('div',{class:'vol-header'},h('span',{style:{color:'#aaa'}},m),h('span',{style:{color:'var(--green)',fontWeight:600,fontFamily:'monospace'}},String(wv[m]))),
+        h('div',{class:'vol-bar'},h('div',{class:'vol-fill',style:{width:'100%',background:'#3a3a52'}}))));
+    });
+    if(Object.values(wv).reduce((a,b)=>a+b,0)===0)
+      card.appendChild(h('div',{style:{fontSize:'11px',color:'#555',textAlign:'center',padding:'4px 0 0'}},'No logged sets this week yet.'));
     scroll.appendChild(card);
   }
   app.appendChild(scroll);
@@ -571,12 +643,14 @@ function renderSession(app){
   const cfg=PROGRAM[V.day];if(!cfg)return;
   const allEx=getOrderedExercises(V.day);
 
+  const rec=isRecovery();
   app.appendChild(h('div',{class:'sess-head'},
     h('button',{class:'back-btn',onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;stopRest();render()}},'←'),
-    h('div',{style:{flex:1}},
-      h('div',{style:{fontSize:'14px',fontWeight:700,color:'#eee'}},cfg.icon+' '+wkName(V.day)),
+    h('div',{style:{flex:1,minWidth:0}},
+      h('div',{style:{fontSize:'14px',fontWeight:700,color:'#eee',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},cfg.icon+' '+wkName(V.day)),
       h('div',{style:{fontSize:'11px',color:'#666'}},fmtDate(V.date))),
-    h('button',{class:'reorder-toggle'+(V.reorder?' on':''),onClick:()=>{V.reorder=!V.reorder;V.openEx=null;render()}},V.reorder?'Done':'↕ Order')));
+    h('button',{class:'reorder-toggle'+(rec?' on':''),style:{padding:'6px 9px',flexShrink:0},onClick:toggleRecovery,title:'Recovery / streamlined day'},rec?'🌙 On':'🌙'),
+    h('button',{class:'reorder-toggle'+(V.reorder?' on':''),style:{flexShrink:0},onClick:()=>{V.reorder=!V.reorder;V.openEx=null;render()}},V.reorder?'Done':'↕ Order')));
 
   const rb=h('div',{class:'rest-bar',id:'rest-bar',style:{display:V.restOn?'flex':'none'}},
     h('div',null,h('span',{style:{fontSize:'11px',color:'#777',letterSpacing:'1px'}},'REST '),h('span',{class:'rest-time'+(V.restSec<=5?' warn':'')},fmtTime(V.restSec))),
@@ -586,12 +660,16 @@ function renderSession(app){
   app.appendChild(rb);
 
   const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'0 10px',paddingBottom:V.showAdd?'320px':'80px'}});
+  if(rec)list.appendChild(h('div',{style:{margin:'2px 2px 10px',padding:'8px 10px',background:'#f59e0b12',border:'1px solid #f59e0b30',borderRadius:'8px',color:'var(--amber)',fontSize:'11px',fontWeight:600,lineHeight:'1.5'}},
+    '🌙 Recovery mode — streamlined: fewer working sets & easier targets. Tap 🌙 in the header to restore the full session.'));
 
   allEx.forEach((ex,i)=>{
     const isOpen=V.openEx===i&&!V.reorder;
     const sets=exSets(ex.name);
     const hasData=sets.length>0&&(sets[0].weight||sets[0].reps||sets[0].notes||sets[0].duration);
     const preview=hasData&&ex.type==='strength'?sets.filter(s=>s.weight).map(s=>s.weight+'×'+(s.reps||'?')).join(' → '):'';
+    const rxShown=rec?(liteRx(ex)||ex.rx):ex.rx;
+    const baseSets=rec?liteSets(ex):(ex.sets||2);
 
     const row=h('div',{class:'ex-row'});
 
@@ -608,8 +686,8 @@ function renderSession(app){
           if(c.length!==a.length){if(c.length)history[dk()][ex.name]=c;else delete history[dk()][ex.name];save()}}}
         V.openEx=isOpen?null:i;V.curSet=0;render()}},
       h('div',{style:{flex:1}},
-        h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},h('span',{class:'ex-name'},ex.name),ex.isExtra?h('span',{class:'extra-tag'},'EXTRA'):null),
-        h('div',{class:'ex-rx'},ex.rx),
+        h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},h('span',{class:'ex-name'},ex.name),ex.isExtra?h('span',{class:'extra-tag'},'EXTRA'):null,rec?h('span',{class:'extra-tag'},'🌙'):null),
+        h('div',{class:'ex-rx'+(rec?' ':''),style:rec?{color:'var(--amber)'}:null},rxShown),
         preview?h('div',{class:'ex-preview'},preview):null),
       h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
         hasData?h('span',{style:{color:'var(--green)',fontSize:'13px'}},'✓'):null,
@@ -655,7 +733,7 @@ function renderSession(app){
         // Count only real (non-empty) sets + the one you're on, so accidental taps / empty padding
         // can't inflate the count and strand you on phantom sets. Tab taps clamp to the next open slot.
         const filledSets=sets.filter(s=>s&&(s.weight||s.reps)).length;
-        const num=Math.max(ex.sets||2,filledSets,V.curSet+1);
+        const num=Math.max(baseSets,filledSets,V.curSet+1);
         const tabs=h('div',{class:'set-tabs'});
         for(let si=0;si<=num;si++){const s=sets[si],filled=s&&(s.weight||s.reps);
           tabs.appendChild(h('button',{class:'set-tab'+(V.curSet===si?' active':filled?' done':''),onClick:()=>{V.curSet=Math.min(si,filledSets);render()}},si<num?'S'+(si+1):'+'))}
@@ -876,7 +954,7 @@ function renderWorkoutEditor(app){
 
   if(V.exEditIdx!=null){
     const editing=V.exEditIdx>=0,ex=editing?cfg.exercises[V.exEditIdx]:{name:'',rx:'',type:'strength',sets:2};
-    const st={name:ex.name,rx:ex.rx,type:ex.type,sets:ex.sets};
+    const st={name:ex.name,rx:ex.rx,type:ex.type,sets:ex.sets,rxLite:ex.rxLite||'',setsLite:ex.setsLite==null?'':ex.setsLite};
     const ap=h('div',{class:'add-panel',style:{marginBottom:'12px'}});
     ap.appendChild(h('label',{class:'field-label'},editing?'EDIT EXERCISE':'NEW EXERCISE'));
     const nmI=h('input',{class:'inp',type:'text',placeholder:'Exercise name'});nmI.value=st.name;nmI.addEventListener('input',e=>st.name=e.target.value);
@@ -893,6 +971,15 @@ function renderWorkoutEditor(app){
     const sr=h('div',{class:'quick-row'});
     [1,2,3,4,5].forEach(n=>{const b=h('button',{class:'q-btn'+(st.sets===n?' on':''),style:{minWidth:'40px'},onClick:()=>{st.sets=n;sr.querySelectorAll('.q-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on')}},String(n));sr.appendChild(b)});
     ap.appendChild(sr);
+    // Optional streamlined "recovery day" version. Blank rx keeps the normal prescription; Auto sets ≈ half.
+    ap.appendChild(h('label',{class:'field-label'},'🌙 STREAMLINED · RECOVERY (OPTIONAL)'));
+    const rxlI=h('input',{class:'inp',type:'text',placeholder:'Easier target, e.g. swap → easy Zone 2'});rxlI.value=st.rxLite;rxlI.addEventListener('input',e=>st.rxLite=e.target.value);
+    ap.appendChild(rxlI);
+    ap.appendChild(h('label',{class:'field-label'},'RECOVERY SETS'));
+    const slr=h('div',{class:'quick-row'});
+    [['','Auto'],[1,'1'],[2,'2'],[3,'3']].forEach(([v,lbl])=>{const b=h('button',{class:'q-btn'+(String(st.setsLite)===String(v)?' on':''),style:{minWidth:'46px'},
+      onClick:()=>{st.setsLite=v;slr.querySelectorAll('.q-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on')}},lbl);slr.appendChild(b)});
+    ap.appendChild(slr);
     ap.appendChild(h('button',{class:'next-btn',onClick:()=>{if(!st.name.trim()){toast('Name required');return}
       const ok=editing?updateWorkoutExercise(key,V.exEditIdx,st):addWorkoutExercise(key,st);
       if(ok===false)return; // duplicate/invalid — keep the form open (toast already shown)
@@ -909,7 +996,7 @@ function renderWorkoutEditor(app){
         h('button',{class:'reorder-btn',onClick:()=>moveWorkoutExercise(key,i,1)},'▼')),
       h('button',{class:'ex-btn',style:{flex:1,minWidth:0},onClick:()=>{V.exEditIdx=i;render()}},
         h('div',{style:{flex:1,minWidth:0}},
-          h('div',{class:'ex-name'},ex.name),
+          h('div',{class:'ex-name'},ex.name,(ex.rxLite||ex.setsLite!=null)?h('span',{style:{marginLeft:'6px',fontSize:'10px'}},'🌙'):null),
           h('div',{class:'ex-rx'},(ex.type!=='strength'?ex.type+' · ':'')+(ex.rx||(ex.sets+' sets')))),
         h('span',{style:{color:'#444',fontSize:'14px'}},'✎')),
       h('button',{class:'mini-btn del',onClick:()=>{if(confirm('Remove "'+ex.name+'" from this workout?')){deleteWorkoutExercise(key,i);render()}}},'✕')));
@@ -954,14 +1041,15 @@ async function exportXlsx(){
       sets.forEach((st,si)=>{rows.push([d,day,ex,st.type==='cardio'?'—':si+1,st.weight||'',st.reps||'',st.rir||'',st.duration||'',st.speed||'',st.elevation||'',st.notes||'',(MUSCLE_MAP[ex]||[]).join(', ')])})})});
   const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[{wch:12},{wch:20},{wch:28},{wch:5},{wch:8},{wch:5},{wch:6},{wch:8},{wch:6},{wch:8},{wch:30},{wch:18}];
   XLSX.utils.book_append_sheet(wb,ws,'Training Log');
-  const vr=[['Week','Back','Chest','Delts','Arms','Quads','Hamstrings','Glutes']];
+  const volCols=Object.keys(VOL_TARGETS); // every tracked muscle, so the sheet matches the in-app rollup
+  const vr=[['Week',...volCols]];
   const dates=Object.keys(history).sort();
   if(dates.length){const first=new Date(dates[0]+'T12:00:00'),last=new Date(dates[dates.length-1]+'T12:00:00');
     const ws2=new Date(first);ws2.setDate(first.getDate()-first.getDay());
     while(ws2<=last){const we=new Date(ws2);we.setDate(ws2.getDate()+6);const vol={};
       dates.forEach(d=>{const dt=new Date(d+'T12:00:00');if(dt>=ws2&&dt<=we)Object.keys(history[d]).forEach(ex=>{if(ex.startsWith('_'))return;
         (MUSCLE_MAP[ex]||[]).forEach(m=>{const sets=Array.isArray(history[d][ex])?history[d][ex].filter(s=>s.weight||s.reps):[];vol[m]=(vol[m]||0)+sets.length})})});
-      vr.push([ws2.toISOString().split('T')[0],vol.Back||0,vol.Chest||0,vol.Delts||0,vol.Arms||0,vol.Quads||0,vol.Hamstrings||0,vol.Glutes||0]);ws2.setDate(ws2.getDate()+7)}}
+      vr.push([ws2.toISOString().split('T')[0],...volCols.map(m=>vol[m]||0)]);ws2.setDate(ws2.getDate()+7)}}
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(vr),'Weekly Volume');
   const pr=[['Exercise','Best Weight','Reps','Date','Muscles']];const pm={};
   dates.forEach(d=>{Object.keys(history[d]).forEach(ex=>{if(ex.startsWith('_'))return;
