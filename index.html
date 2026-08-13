@@ -105,12 +105,15 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 .mini-btn:active{background:var(--accent);color:#fff}
 .mini-btn.del{color:var(--red)}
 .mini-btn.del:active{background:var(--red);color:#fff}
+.block-bar{width:calc(100% - 28px);margin:0 14px 8px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.block-select{background:#0c0c1a;border:1px solid var(--border);color:var(--gold);font:700 12px monospace;padding:6px 8px;border-radius:8px;outline:none;max-width:62%}
+.block-note{font-size:10px;color:#8a8aa0;line-height:1.5}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v15'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v16'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -167,7 +170,7 @@ const DEFAULT_WORKOUTS = {
 };
 // Old defaults + common extras (all available via + Add Exercise)
 const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
-const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"]};
+const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"]};
 // Weekly set targets [min,max] per muscle. Every muscle MUSCLE_MAP can produce is listed here so
 // nothing logged is silently dropped from the rollup (Traps/Calves/Core were previously untracked).
 const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Traps:[4,8],Arms:[5,7],Core:[6,12],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7],Calves:[6,10]};
@@ -298,6 +301,65 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
   'Day 7 - Full Rest':{color:'#6b7280',icon:'🔄',exercises:[
     {name:'Full Rest',rx:'Walk · daylight · sleep only (parasympathetic reset)',type:'mobility',sets:1}]}
 }};
+
+// ─── 30–45 min · 3 lift + 3 cardio program, with a 12-week periodization drop-down ───
+// The program carries `blocks` (selectable phases) + `activeBlock`. A block adjusts strength set
+// VOLUME (setMult) and, via BLOCK_OVERRIDES, swaps specific cardio prescriptions per phase. Base
+// (Establish) rx/sets live on each exercise; other programs have no `.blocks` and are unaffected.
+const PLAN3x3_ID='vo2-30-45-3x3';
+const BLOCK_OVERRIDES={
+  deload1:{'VO2max 4×4':'7–8 min w-up · 3 × [4 min hard / 3 min easy] · cd (~34 min)','Threshold Run':'Deload → 30–40 min easy Zone 2 (skip threshold)','Zone 2 Endurance':'Deload → 35–45 min very easy Zone 2'},
+  build:{'Threshold Run':'8 min w-up · ~25 min @ RPE 7–8 · 5 min cd','Zone 2 Cardio':'40–45 min continuous · RPE 3–4 · full sentences','Zone 2 Endurance':'40–45 min very easy Zone 2 · RPE 3'},
+  deload2:{'VO2max 4×4':'7–8 min w-up · 3 × [4 min hard / 3 min easy] · cd (~34 min)','Threshold Run':'Deload → 30–40 min easy Zone 2 (skip threshold)','Zone 2 Endurance':'Deload → 35–45 min very easy Zone 2'},
+  peak:{'VO2max 4×4':'7–8 min w-up · 4 × [4 min hard / 3 min easy] · cd · high quality','Threshold Run':'8 min w-up · 25–30 min @ RPE 7–8 · 5 min cd','Zone 2 Cardio':'40–45 min continuous · RPE 3–4','Zone 2 Endurance':'45 min very easy Zone 2 · RPE 3'},
+  taper:{'VO2max 4×4':'One easy 4 × 4 early in the week; otherwise easy aerobic only','Threshold Run':'Taper → 25–30 min easy Zone 2','Zone 2 Cardio':'25–35 min very easy','Zone 2 Endurance':'25–35 min very easy Zone 2'},
+};
+const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
+  activeBlock:'establish',
+  blocks:[
+    {id:'establish',label:'Wk 1–3 · Establish',setMult:1,note:'Set starting loads · lifts ~2 RIR · full 4×4 · Sat rotates A/B'},
+    {id:'deload1',label:'Wk 4 · Deload',setMult:0.7,note:'Volume −25–30% · Tue 3×4 · Sat = easy Zone 2 · back off to ~3 RIR'},
+    {id:'build',label:'Wk 5–7 · Build',setMult:1,note:'Progress reps/load · full 4×4 · threshold ~25 min · Zone 2 → 40–45'},
+    {id:'deload2',label:'Wk 8 · Deload',setMult:0.7,note:'Volume −25–30% · Tue 3×4 · Sat = easy Zone 2 · back off to ~3 RIR'},
+    {id:'peak',label:'Wk 9–11 · Peak',setMult:1,note:'Hold volume, high quality · crisp 4×4 · threshold 25–30 · endurance Sat 45'},
+    {id:'taper',label:'Wk 12 · Taper',setMult:0.6,note:'Volume −30–40% · one easy 4×4 early · then mostly easy aerobic · reassess'},
+  ],
+  dayOrder:['Mon - Upper A','Tue - VO2max','Wed - Lower','Thu - Zone 2','Fri - Upper B','Sat A - Threshold','Sat B - Endurance','Sun - Rest'],
+  days:{
+    'Mon - Upper A':{color:'#2563eb',icon:'💪',exercises:[
+      {name:'Incline DB Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Chest-Supported Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Landmine Press',rx:'2 × 8–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR',type:'strength',sets:2},
+      {name:'Incline DB Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
+      {name:'Rope Triceps Pushdown',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
+    'Tue - VO2max':{color:'#dc2626',icon:'💨',exercises:[
+      {name:'VO2max 4×4',rx:'7–8 min w-up · 4 × [4 min hard / 3 min easy] · 4–5 min cd (~38 min)',type:'cardio',sets:1}]},
+    'Wed - Lower':{color:'#7c3aed',icon:'🦵',exercises:[
+      {name:'Safety Bar Squat',rx:'2 × 5–8 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Romanian Deadlift',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Bulgarian Split Squat',rx:'1–2 × 8–12/leg | 1–2 RIR',type:'strength',sets:2},
+      {name:'Seated Leg Curl',rx:'2 × 8–12 | 0–2 RIR',type:'strength',sets:2},
+      {name:'Standing Calf Raise',rx:'2 × 10–15',type:'strength',sets:2},
+      {name:'Pallof Press',rx:'1–2 × 10–12/side | optional',type:'strength',sets:1}]},
+    'Thu - Zone 2':{color:'#059669',icon:'🫁',exercises:[
+      {name:'Zone 2 Cardio',rx:'30–45 min continuous · RPE 3–4 · full sentences',type:'cardio',sets:1}]},
+    'Fri - Upper B':{color:'#0891b2',icon:'💪',exercises:[
+      {name:'Lat Pulldown',rx:'2 × 6–10 | 1–2 RIR (neutral grip)',type:'strength',sets:2},
+      {name:'Machine Chest Press',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Seated Cable Row',rx:'2 × 8–12 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Machine Shoulder Press',rx:'1–2 × 8–12 | pain-free ROM',type:'strength',sets:2},
+      {name:'Face Pulls',rx:'2 × 12–20 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Hammer Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
+      {name:'OH Rope Triceps Extension',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
+    'Sat A - Threshold':{color:'#ea580c',icon:'🔥',exercises:[
+      {name:'Threshold Run',rx:'8 min w-up · 20–25 min @ RPE 7–8 · 5 min cd',type:'cardio',sets:1}]},
+    'Sat B - Endurance':{color:'#16a34a',icon:'🏃',exercises:[
+      {name:'Zone 2 Endurance',rx:'40–45 min very easy Zone 2 · RPE 3',type:'cardio',sets:1}]},
+    'Sun - Rest':{color:'#6b7280',icon:'🔄',exercises:[
+      {name:'Full Rest',rx:'Walk · daylight · sleep. Optional easy mobility.',type:'mobility',sets:1}]}
+  }};
 if(!programs._v2seeded){
   if(!programs.list[V2_ID]){programs.list[V2_ID]=JSON.parse(JSON.stringify(V2_PROGRAM));
     if(!programs.order.includes(V2_ID))programs.order.push(V2_ID);}
@@ -314,6 +376,13 @@ if(!programs._v2seeded){
 (function(){const p=programs.list[V2_ID];const d2=p&&p.days&&p.days['Day 2 - 4×4 + Pull'];
   if(d2&&Array.isArray(d2.exercises)){const ex=d2.exercises.find(e=>e.name==='Lat Pulldown');
     if(ex){ex.name='Kneeling Cable Lat Pulldown';LS.set('programs',programs);}}})();
+// Seed the 30–45 min 3+3 program into the switcher (added once; does NOT change the active program,
+// and won't re-add if the user deletes it). Select it from PROGRAM → switch ▾.
+if(!programs._plan3x3seeded){
+  if(!programs.list[PLAN3x3_ID]){programs.list[PLAN3x3_ID]=JSON.parse(JSON.stringify(PLAN3x3_PROGRAM));
+    if(!programs.order.includes(PLAN3x3_ID))programs.order.push(PLAN3x3_ID);}
+  programs._plan3x3seeded=true;LS.set('programs',programs);
+}
 
 let _lsWarned=0;
 function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder),LS.set('programs',programs)].every(Boolean);
@@ -512,11 +581,13 @@ function toggleRecovery(){const d=dk();
     // Drop a session record we created only to hold the flag (no exercises / extras logged).
     if(Object.keys(history[d]).filter(k=>k!=='_day').length===0)delete history[d];}
   save();render();}
-// Streamlined set count for an exercise: explicit setsLite → RECOVERY_MAP → auto (≈half, min 1).
-function liteSets(ex){
+// Streamlined set count: explicit setsLite → RECOVERY_MAP → auto (≈half of `base`, min 1).
+// `base` is the already-block-adjusted target so recovery composes on top of periodization.
+function liteSets(ex,base){
   if(ex.setsLite!=null&&ex.setsLite!=='')return Math.max(1,parseInt(ex.setsLite)||1);
   const m=RECOVERY_MAP[ex.name];if(m&&m.sets!=null)return Math.max(1,m.sets);
-  return ex.type==='strength'?Math.max(1,Math.ceil((ex.sets||2)/2)):(ex.sets||1);
+  base=(base==null)?(ex.sets||2):base;
+  return ex.type==='strength'?Math.max(1,Math.ceil(base/2)):(base||1);
 }
 // Streamlined prescription text, or null to keep the normal rx (just with fewer sets).
 function liteRx(ex){
@@ -524,6 +595,16 @@ function liteRx(ex){
   const m=RECOVERY_MAP[ex.name];if(m&&m.rx)return m.rx;
   return null;
 }
+
+// ─── PERIODIZATION BLOCKS (only for programs that define .blocks, e.g. the 3+3 plan) ───
+function activeBlock(){const p=activeProg();if(!p||!Array.isArray(p.blocks)||!p.blocks.length)return null;
+  return p.blocks.find(b=>b.id===p.activeBlock)||p.blocks[0]}
+// Strength sets scaled by the active block's multiplier (deloads/taper reduce volume); cardio unchanged.
+function blockSets(ex){const b=activeBlock(),base=ex.sets||(ex.type==='strength'?2:1);
+  if(!b||ex.type!=='strength')return base;
+  return Math.max(1,Math.round(base*(b.setMult==null?1:b.setMult)))}
+// Per-block prescription override for a specific exercise (mostly cardio swaps), or null for the base rx.
+function blockRxFor(ex){const b=activeBlock();if(!b)return null;const o=BLOCK_OVERRIDES[b.id];return(o&&o[ex.name])||null}
 
 // ─── REST TIMER ───
 let restIv=null;
@@ -602,6 +683,19 @@ function renderHome(app){
       h('div',{class:'pname'},activeProg().name)),
     h('span',{style:{color:'#777',fontSize:'11px',fontWeight:600,whiteSpace:'nowrap'}},'switch ▾')));
 
+  // Periodization drop-down — only for programs that define phases (the 3+3 plan).
+  const _blks=activeProg().blocks;
+  if(Array.isArray(_blks)&&_blks.length){
+    const cur=activeBlock();
+    const sel=h('select',{class:'block-select',onchange:e=>{activeProg().activeBlock=e.target.value;save();render()}});
+    _blks.forEach(bl=>{const o=h('option',{value:bl.id},bl.label);if(bl.id===cur.id)o.selected='selected';sel.appendChild(o)});
+    app.appendChild(h('div',{class:'block-bar'},
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',marginBottom:'6px'}},
+        h('span',{style:{fontSize:'9px',color:'#777',letterSpacing:'1.5px',fontWeight:700}},'PERIODIZATION BLOCK'),
+        sel),
+      h('div',{class:'block-note'},cur.note)));
+  }
+
   app.appendChild(h('div',{class:'date-nav'},
     h('button',{class:'date-btn',onClick:()=>{V.date=new Date(V.date);V.date.setDate(V.date.getDate()-1);render()}},'◀'),
     h('button',{class:'date-btn'+(today?' today-glow':''),style:{fontSize:'11px',padding:'6px 14px'},onClick:()=>{V.date=new Date();render()}},'TODAY'),
@@ -666,7 +760,7 @@ function renderSession(app){
   const cfg=PROGRAM[V.day];if(!cfg)return;
   const allEx=getOrderedExercises(V.day);
 
-  const rec=isRecovery();
+  const rec=isRecovery(),blk=activeBlock();
   app.appendChild(h('div',{class:'sess-head'},
     h('button',{class:'back-btn',onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;stopRest();render()}},'←'),
     h('div',{style:{flex:1,minWidth:0}},
@@ -683,6 +777,7 @@ function renderSession(app){
   app.appendChild(rb);
 
   const scroll=h('div',{class:'scroll'}),list=h('div',{style:{padding:'0 10px',paddingBottom:V.showAdd?'320px':'80px'}});
+  if(blk)list.appendChild(h('div',{style:{margin:'2px 2px 10px',padding:'7px 10px',background:'#0c0c1a',border:'1px solid var(--border)',borderRadius:'8px',color:'var(--gold)',fontSize:'11px',fontWeight:700}},'📅 '+blk.label));
   if(rec)list.appendChild(h('div',{style:{margin:'2px 2px 10px',padding:'8px 10px',background:'#f59e0b12',border:'1px solid #f59e0b30',borderRadius:'8px',color:'var(--amber)',fontSize:'11px',fontWeight:600,lineHeight:'1.5'}},
     '🌙 Recovery mode — streamlined: fewer working sets & easier targets. Tap 🌙 in the header to restore the full session.'));
 
@@ -691,8 +786,11 @@ function renderSession(app){
     const sets=exSets(ex.name);
     const hasData=sets.length>0&&(sets[0].weight||sets[0].reps||sets[0].notes||sets[0].duration);
     const preview=hasData&&ex.type==='strength'?sets.filter(s=>s.weight).map(s=>s.weight+'×'+(s.reps||'?')).join(' → '):'';
-    const rxShown=rec?(liteRx(ex)||ex.rx):ex.rx;
-    const baseSets=rec?liteSets(ex):(ex.sets||2);
+    // Prescription/sets layer: block override → recovery override (recovery wins when a day is flagged).
+    const bRx=blockRxFor(ex);let rxShown=bRx||ex.rx;
+    if(rec){const lr=liteRx(ex);if(lr)rxShown=lr;}
+    const effBase=blockSets(ex);
+    const baseSets=rec?liteSets(ex,effBase):effBase;
 
     const row=h('div',{class:'ex-row'});
 
