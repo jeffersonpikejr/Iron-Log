@@ -42,7 +42,7 @@ git commit -m "your message"
 git push
 ```
 
-When the service worker assets change, bump `CACHE` in `sw.js` (e.g. `ironlog-v8` → `ironlog-v9`) so installed clients pick up the new version.
+When the service worker assets change, bump `CACHE` in `sw.js` (e.g. `ironlog-v8` → `ironlog-v9`) so installed clients pick up the new version. Bump `APP_VERSION` in `index.html` to the **same** number — it's shown in the header (next to the logo) and in the ⚙️ settings panel so you can confirm at a glance which build is running.
 
 ## Data & privacy
 

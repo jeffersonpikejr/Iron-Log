@@ -110,6 +110,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
+const APP_VERSION='v14'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -564,7 +565,9 @@ window.addEventListener('error',()=>{try{const app=document.getElementById('app'
 function renderHome(app){
   const today=isToday();
   app.appendChild(h('div',{class:'header'},
-    h('span',{class:'logo'},'IRON·LOG'),
+    h('div',{style:{display:'flex',alignItems:'baseline',gap:'6px'}},
+      h('span',{class:'logo'},'IRON·LOG'),
+      h('span',{style:{fontSize:'9px',color:'#666',fontWeight:700,letterSpacing:'0.5px',fontFamily:'monospace'}},APP_VERSION)),
     h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
       h('button',{style:{background:'none',border:'none',fontSize:'14px',cursor:'pointer',padding:'2px 6px'},onClick:()=>{V.showData=!V.showData;render()}},'⚙️'),
       h('div',{class:'date-chip'},fmtDate(V.date)))));
@@ -578,7 +581,7 @@ function renderHome(app){
         h('button',{class:'data-btn',onClick:exportJson},'↓ JSON'),
         h('button',{class:'data-btn',onClick:importJson},'↑ Import')),
       cnt>0?h('button',{class:'remove-btn',onClick:()=>{if(confirm('Delete ALL logged data? (Your programs are kept)')){history={};customExercises=[];weightMemory={};exerciseOrder={};save();V.showData=false;toast('Cleared');render()}}},'Clear All Data'):null,
-      h('div',{style:{marginTop:'8px',fontSize:'10px',color:'#444',lineHeight:'1.6'}},'Data saved to this device via localStorage.')));
+      h('div',{style:{marginTop:'8px',fontSize:'10px',color:'#444',lineHeight:'1.6'}},'Version '+APP_VERSION+' · Data saved to this device via localStorage.')));
   }
 
   app.appendChild(h('button',{class:'prog-bar',onClick:()=>{V.view='programs';V.newProgOpen=false;render()}},
