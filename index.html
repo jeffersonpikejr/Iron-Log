@@ -110,7 +110,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v14'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v15'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -488,6 +488,18 @@ function weeklyVol(){
 function doneCount(exercises){const s=sess();return exercises.filter(ex=>{const d=s[ex.name];if(!d)return false;
   if(ex.type==='cardio'||ex.type==='mobility')return d.length>0&&(d[0].notes||d[0].duration);
   return d.length>0&&d.some(x=>x.weight||x.reps)}).length}
+// True if this exercise was completed on day `d`.
+function exDoneOn(ex,d){const data=history[d]&&history[d][ex.name];if(!data)return false;
+  if(ex.type==='cardio'||ex.type==='mobility')return data.length>0&&(data[0].notes||data[0].duration);
+  return data.length>0&&data.some(x=>x.weight||x.reps)}
+// Weekly completion for a workout: how many of its exercises were done on ANY day in `weekDays`
+// (the Sun–Sat window of the viewed date), plus the most recent day any were done. This is what
+// lets Sunday's 2/7 stay visible on Thursday instead of resetting to the viewed day only.
+function weekDoneInfo(exercises,weekDays){let done=0,lastDay=null;
+  exercises.forEach(ex=>{let hit=false;
+    weekDays.forEach(d=>{if(exDoneOn(ex,d)){hit=true;if(!lastDay||d>lastDay)lastDay=d}});
+    if(hit)done++});
+  return{done,lastDay}}
 
 // ─── RECOVERY (streamlined-day) MODE ───
 // A day can be flagged as suboptimal-recovery. When on, sessions render a streamlined version of each
@@ -603,13 +615,21 @@ function renderHome(app){
       border:'1px solid '+(rec?'#f59e0b55':'#282838'),background:rec?'#f59e0b12':'transparent',color:rec?'var(--amber)':'#666'}},
     rec?'🌙 Recovery day — sessions streamlined (tap to undo)':'🌙 Under-recovered? Tap for a streamlined day'));
   const wks=orderedWorkouts();
+  // Sun–Sat window of the viewed date → workout cards reflect the whole week, not just the viewed day.
+  const {start:_ws,end:_we}=weekRange(V.date);
+  const weekDays=Object.keys(history).filter(d=>{const dt=new Date(d+'T12:00:00');return dt>=_ws&&dt<=_we});
+  const curKey=dk(),WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   wks.forEach(dn=>{const cfg=PROGRAM[dn];if(!cfg)return;
-    const t=cfg.exercises.length,done=doneCount(cfg.exercises),full=done===t&&t>0,lbl=wkLabel(dn);
+    const t=cfg.exercises.length,lbl=wkLabel(dn);
+    const wi=weekDoneInfo(cfg.exercises,weekDays),done=wi.done,full=done===t&&t>0;
+    // If it was last done on a different day this week, tag which day so Thursday shows "Sun" etc.
+    const otherDay=(wi.lastDay&&wi.lastDay!==curKey)?WD[new Date(wi.lastDay+'T12:00:00').getDay()]:null;
     list.appendChild(h('button',{class:'day-card',style:{borderLeft:'4px solid '+cfg.color,background:full?cfg.color+'08':'var(--card)'},
       onClick:()=>{V.day=dn;V.view='session';V.openEx=null;V.showAdd=false;V.addFilter='';V.reorder=false;render()}},
       h('div',{class:'day-left'},h('span',{style:{fontSize:'20px'}},cfg.icon),h('div',null,h('div',{class:'day-name'},wkName(dn)),lbl?h('div',{class:'day-num'},lbl):null)),
       h('div',{class:'day-right'},
         done>0?h('span',{style:{fontSize:'11px',color:cfg.color,fontWeight:600,fontFamily:'monospace'}},done+'/'+t):null,
+        otherDay?h('span',{style:{fontSize:'9px',color:'#7a7a92',fontWeight:700,letterSpacing:'0.5px'},title:'last logged '+otherDay+' this week'},otherDay):null,
         full?h('span',{style:{fontSize:'14px'}},'✓'):null,
         h('span',{style:{color:'#444',fontSize:'14px'}},'›'))));
   });
