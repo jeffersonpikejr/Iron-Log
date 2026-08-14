@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v17'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v18'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -316,19 +316,30 @@ const BLOCK_OVERRIDES={
   peak:{'VO2max 4×4':'7–8 min w-up · 4 × [4 min hard / 3 min easy] · cd · high quality','Threshold Run':'8 min w-up · 25–30 min @ RPE 7–8 · 5 min cd','Zone 2 Cardio':'40–45 min continuous · RPE 3–4','Zone 2 Endurance':'45 min very easy Zone 2 · RPE 3'},
   taper:{'VO2max 4×4':'One easy 4 × 4 early in the week; otherwise easy aerobic only','Threshold Run':'Taper → 25–30 min easy Zone 2','Zone 2 Cardio':'25–35 min very easy','Zone 2 Endurance':'25–35 min very easy Zone 2'},
 };
+// Phase notes (shared by the seed + the migration so both stay in sync). Saturday emphasis is baked
+// in: alternate early, bias threshold through the build, alternate again at peak.
+const PLAN3x3_BLOCK_NOTES={
+  establish:'Set starting loads · lifts ~2 RIR · full 4×4 · Sat: alternate Z2 / threshold',
+  deload1:'Volume −25–30% · Tue 3×4 · Sat = easy Zone 2 · back off to ~3 RIR',
+  build:'Progress reps/load · full 4×4 · Sat: bias threshold (~3 of 4 wks) · Z2 → 40–45',
+  deload2:'Volume −25–30% · Tue 3×4 · Sat = easy Zone 2 · back off to ~3 RIR',
+  peak:'Hold volume, high quality · crisp 4×4 · Sat: alternate · 45-min endurance when long',
+  taper:'Volume −30–40% · one easy 4×4 early · then mostly easy aerobic · reassess',
+};
 const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
   activeBlock:'establish',
   blocks:[
-    {id:'establish',label:'Wk 1–3 · Establish',setMult:1,note:'Set starting loads · lifts ~2 RIR · full 4×4 · Sat rotates A/B'},
-    {id:'deload1',label:'Wk 4 · Deload',setMult:0.7,note:'Volume −25–30% · Tue 3×4 · Sat = easy Zone 2 · back off to ~3 RIR'},
-    {id:'build',label:'Wk 5–7 · Build',setMult:1,note:'Progress reps/load · full 4×4 · threshold ~25 min · Zone 2 → 40–45'},
-    {id:'deload2',label:'Wk 8 · Deload',setMult:0.7,note:'Volume −25–30% · Tue 3×4 · Sat = easy Zone 2 · back off to ~3 RIR'},
-    {id:'peak',label:'Wk 9–11 · Peak',setMult:1,note:'Hold volume, high quality · crisp 4×4 · threshold 25–30 · endurance Sat 45'},
-    {id:'taper',label:'Wk 12 · Taper',setMult:0.6,note:'Volume −30–40% · one easy 4×4 early · then mostly easy aerobic · reassess'},
+    {id:'establish',label:'Wk 1–3 · Establish',setMult:1,note:PLAN3x3_BLOCK_NOTES.establish},
+    {id:'deload1',label:'Wk 4 · Deload',setMult:0.7,note:PLAN3x3_BLOCK_NOTES.deload1},
+    {id:'build',label:'Wk 5–7 · Build',setMult:1,note:PLAN3x3_BLOCK_NOTES.build},
+    {id:'deload2',label:'Wk 8 · Deload',setMult:0.7,note:PLAN3x3_BLOCK_NOTES.deload2},
+    {id:'peak',label:'Wk 9–11 · Peak',setMult:1,note:PLAN3x3_BLOCK_NOTES.peak},
+    {id:'taper',label:'Wk 12 · Taper',setMult:0.6,note:PLAN3x3_BLOCK_NOTES.taper},
   ],
   dayOrder:['Mon - Upper A','Tue - VO2max','Wed - Lower','Thu - Zone 2','Fri - Upper B','Sat A - Threshold','Sat B - Endurance','Sun - Rest'],
   days:{
     'Mon - Upper A':{color:'#2563eb',icon:'💪',exercises:[
+      {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
       {name:'Incline DB Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
       {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Chest-Supported Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
@@ -346,11 +357,13 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
       {name:'Standing Calf Raise',rx:'2 × 10–15',type:'strength',sets:2},
       {name:'Pallof Press',rx:'1–2 × 10–12/side | optional',type:'strength',sets:1}]},
     'Thu - Zone 2':{color:'#059669',icon:'🫁',exercises:[
-      {name:'Zone 2 Cardio',rx:'30–45 min continuous · RPE 3–4 · full sentences',type:'cardio',sets:1}]},
+      {name:'Zone 2 Cardio',rx:'30–45 min · RPE 3–4 · aim 40–45 when time allows',type:'cardio',sets:1}]},
     'Fri - Upper B':{color:'#0891b2',icon:'💪',exercises:[
+      {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
       {name:'Lat Pulldown',rx:'2 × 6–10 | 1–2 RIR (neutral grip)',type:'strength',sets:2},
       {name:'Machine Chest Press',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Seated Cable Row',rx:'2 × 8–12 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Leg Press',rx:'2 × 8–12 | 1–2 RIR (secondary legs)',type:'strength',sets:2},
       {name:'Machine Shoulder Press',rx:'1–2 × 8–12 | pain-free ROM',type:'strength',sets:2},
       {name:'Face Pulls',rx:'2 × 12–20 | 1–2 RIR',type:'strength',sets:2},
       {name:'Hammer Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
@@ -358,7 +371,7 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
     'Sat A - Threshold':{color:'#ea580c',icon:'🔥',exercises:[
       {name:'Threshold Run',rx:'8 min w-up · 20–25 min @ RPE 7–8 · 5 min cd',type:'cardio',sets:1}]},
     'Sat B - Endurance':{color:'#16a34a',icon:'🏃',exercises:[
-      {name:'Zone 2 Endurance',rx:'40–45 min very easy Zone 2 · RPE 3',type:'cardio',sets:1}]},
+      {name:'Zone 2 Endurance',rx:'40–45 min very easy Z2 · stretch to 60–75 when you have the window',type:'cardio',sets:1}]},
     'Sun - Rest':{color:'#6b7280',icon:'🔄',exercises:[
       {name:'Full Rest',rx:'Walk · daylight · sleep. Optional easy mobility.',type:'mobility',sets:1}]}
   }};
@@ -384,6 +397,29 @@ if(!programs._plan3x3seeded){
   if(!programs.list[PLAN3x3_ID]){programs.list[PLAN3x3_ID]=JSON.parse(JSON.stringify(PLAN3x3_PROGRAM));
     if(!programs.order.includes(PLAN3x3_ID))programs.order.push(PLAN3x3_ID);}
   programs._plan3x3seeded=true;LS.set('programs',programs);
+}
+// Refinement pass for copies seeded before these tweaks existed: add a Friday secondary-leg exposure,
+// a shoulder-prehab micro-dose before both upper days, refresh the Saturday-periodization block notes,
+// and nudge Thu/Sat-B wording. All idempotent (added only if absent; rx changed only if untouched),
+// so fresh seeds already carrying these values are no-ops. Runs once.
+if(!programs._plan3x3migr2){
+  const p=programs.list[PLAN3x3_ID];
+  if(p&&p.days){
+    const has=(d,n)=>Array.isArray(d.exercises)&&d.exercises.some(e=>e.name===n);
+    const prehab=()=>({name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1});
+    const ua=p.days['Mon - Upper A'],ub=p.days['Fri - Upper B'];
+    if(ua&&Array.isArray(ua.exercises)&&!has(ua,'Shoulder Prehab'))ua.exercises.unshift(prehab());
+    if(ub&&Array.isArray(ub.exercises)){
+      if(!has(ub,'Shoulder Prehab'))ub.exercises.unshift(prehab());
+      if(!has(ub,'Leg Press')){const i=ub.exercises.findIndex(e=>e.name==='Seated Cable Row');
+        ub.exercises.splice(i>=0?i+1:ub.exercises.length,0,{name:'Leg Press',rx:'2 × 8–12 | 1–2 RIR (secondary legs)',type:'strength',sets:2});}
+    }
+    const setRx=(k,n,oldRx,newRx)=>{const d=p.days[k];if(!d)return;const e=(d.exercises||[]).find(x=>x.name===n);if(e&&e.rx===oldRx)e.rx=newRx};
+    setRx('Thu - Zone 2','Zone 2 Cardio','30–45 min continuous · RPE 3–4 · full sentences','30–45 min · RPE 3–4 · aim 40–45 when time allows');
+    setRx('Sat B - Endurance','Zone 2 Endurance','40–45 min very easy Zone 2 · RPE 3','40–45 min very easy Z2 · stretch to 60–75 when you have the window');
+    if(Array.isArray(p.blocks))p.blocks.forEach(b=>{if(PLAN3x3_BLOCK_NOTES[b.id])b.note=PLAN3x3_BLOCK_NOTES[b.id]});
+  }
+  programs._plan3x3migr2=true;LS.set('programs',programs);
 }
 
 let _lsWarned=0;
