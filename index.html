@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v16'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v17'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -188,6 +188,8 @@ const RECOVERY_MAP={
   "Warm-up + Strides":{rx:"10 min easy · skip strides"},
   "Warm-up":{rx:"8–10 min very easy"},
   "Long Slow Distance":{rx:"40–50 min @ 60–68% HRmax (cut short)"},
+  "VO2max 4×4":{rx:"Swap → 30–40 min Zone 2 @ 65–72% (skip the intervals)"},
+  "Zone 2 Endurance":{rx:"30–40 min very easy Zone 2 (cut short)"},
 };
 const RIR_OPTS=["0 (F)","1","1-2","2","2-3","3","3-5"];
 const REST_OPTS=[{label:"1:30",sec:90},{label:"3:00",sec:180},{label:"5:00",sec:300}];
@@ -809,6 +811,7 @@ function renderSession(app){
       h('div',{style:{flex:1}},
         h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},h('span',{class:'ex-name'},ex.name),ex.isExtra?h('span',{class:'extra-tag'},'EXTRA'):null,rec?h('span',{class:'extra-tag'},'🌙'):null),
         h('div',{class:'ex-rx'+(rec?' ':''),style:rec?{color:'var(--amber)'}:null},rxShown),
+        (rec&&ex.type==='strength'&&baseSets<effBase)?h('div',{class:'ex-preview',style:{color:'var(--amber)'}},'🌙 streamlined to '+baseSets+' working set'+(baseSets===1?'':'s')+' (from '+effBase+')'):null,
         preview?h('div',{class:'ex-preview'},preview):null),
       h('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},
         hasData?h('span',{style:{color:'var(--green)',fontSize:'13px'}},'✓'):null,
