@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v18'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v19'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -170,7 +170,7 @@ const DEFAULT_WORKOUTS = {
 };
 // Old defaults + common extras (all available via + Add Exercise)
 const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
-const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"]};
+const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"],"Smith Machine Squat":["Quads","Glutes"],"Leg Press Calf Press":["Calves"],"Smith Machine Incline Press":["Chest","Delts"],"Pull-Ups":["Back"]};
 // Weekly set targets [min,max] per muscle. Every muscle MUSCLE_MAP can produce is listed here so
 // nothing logged is silently dropped from the rollup (Traps/Calves/Core were previously untracked).
 const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Traps:[4,8],Arms:[5,7],Core:[6,12],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7],Calves:[6,10]};
@@ -342,29 +342,28 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
       {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
       {name:'Incline DB Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
       {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Chest-Supported Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Landmine Press',rx:'2 × 8–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Chest-Supported Row',rx:'2 × 6–10 | 1–2 RIR (DB on incline bench)',type:'strength',sets:2},
+      {name:'Machine Chest Press',rx:'2 × 6–10 | 1–2 RIR (flat, supported)',type:'strength',sets:2},
       {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR',type:'strength',sets:2},
       {name:'Incline DB Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
       {name:'Rope Triceps Pushdown',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
     'Tue - VO2max':{color:'#dc2626',icon:'💨',exercises:[
       {name:'VO2max 4×4',rx:'7–8 min w-up · 4 × [4 min hard / 3 min easy] · 4–5 min cd (~38 min)',type:'cardio',sets:1}]},
     'Wed - Lower':{color:'#7c3aed',icon:'🦵',exercises:[
-      {name:'Safety Bar Squat',rx:'2 × 5–8 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Romanian Deadlift',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Bulgarian Split Squat',rx:'1–2 × 8–12/leg | 1–2 RIR',type:'strength',sets:2},
+      {name:'Smith Machine Squat',rx:'2 × 5–8 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Romanian Deadlift',rx:'2 × 6–10 | 1–2 RIR (DB or Smith)',type:'strength',sets:2},
+      {name:'Bulgarian Split Squat',rx:'1–2 × 8–12/leg | 1–2 RIR (DB)',type:'strength',sets:2},
       {name:'Seated Leg Curl',rx:'2 × 8–12 | 0–2 RIR',type:'strength',sets:2},
-      {name:'Standing Calf Raise',rx:'2 × 10–15',type:'strength',sets:2},
-      {name:'Pallof Press',rx:'1–2 × 10–12/side | optional',type:'strength',sets:1}]},
+      {name:'Leg Press Calf Press',rx:'2 × 12–15',type:'strength',sets:2},
+      {name:'Pallof Press',rx:'1–2 × 10–12/side | optional (band/cable)',type:'strength',sets:1}]},
     'Thu - Zone 2':{color:'#059669',icon:'🫁',exercises:[
       {name:'Zone 2 Cardio',rx:'30–45 min · RPE 3–4 · aim 40–45 when time allows',type:'cardio',sets:1}]},
     'Fri - Upper B':{color:'#0891b2',icon:'💪',exercises:[
       {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
-      {name:'Lat Pulldown',rx:'2 × 6–10 | 1–2 RIR (neutral grip)',type:'strength',sets:2},
-      {name:'Machine Chest Press',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Pull-Ups',rx:'2 × 6–10 | 1–2 RIR (straight bar)',type:'strength',sets:2},
+      {name:'Smith Machine Incline Press',rx:'2 × 6–10 | 1–2 RIR (covers shoulders)',type:'strength',sets:2},
       {name:'Seated Cable Row',rx:'2 × 8–12 | 1–2 RIR',type:'strength',sets:2},
       {name:'Leg Press',rx:'2 × 8–12 | 1–2 RIR (secondary legs)',type:'strength',sets:2},
-      {name:'Machine Shoulder Press',rx:'1–2 × 8–12 | pain-free ROM',type:'strength',sets:2},
       {name:'Face Pulls',rx:'2 × 12–20 | 1–2 RIR',type:'strength',sets:2},
       {name:'Hammer Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
       {name:'OH Rope Triceps Extension',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
@@ -420,6 +419,27 @@ if(!programs._plan3x3migr2){
     if(Array.isArray(p.blocks))p.blocks.forEach(b=>{if(PLAN3x3_BLOCK_NOTES[b.id])b.note=PLAN3x3_BLOCK_NOTES[b.id]});
   }
   programs._plan3x3migr2=true;LS.set('programs',programs);
+}
+// Apartment-gym equipment pass: swap the movements that need a barbell rack / SSB / landmine / lat-
+// pulldown machine for what's actually available (DBs, Smith, two-pulley cable, leg press, pull-up bar).
+// In-place renames keep set/rep targets; also fixes the day's saved order + drops the skipped press. Once.
+if(!programs._plan3x3equip){
+  const p=programs.list[PLAN3x3_ID];
+  if(p&&p.days){
+    const rename=(k,oldN,newN,newRx)=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises))return;
+      const e=d.exercises.find(x=>x.name===oldN);if(!e||d.exercises.some(x=>x.name===newN))return; // skip if absent or target exists
+      e.name=newN;if(newRx!=null)e.rx=newRx;
+      const ord=exerciseOrder[k];if(Array.isArray(ord)){const i=ord.indexOf(oldN);if(i>=0)ord[i]=newN}};
+    const drop=(k,n)=>{const d=p.days[k];if(d&&Array.isArray(d.exercises))d.exercises=d.exercises.filter(x=>x.name!==n);
+      const ord=exerciseOrder[k];if(Array.isArray(ord)){const i=ord.indexOf(n);if(i>=0)ord.splice(i,1)}};
+    rename('Mon - Upper A','Landmine Press','Machine Chest Press','2 × 6–10 | 1–2 RIR (flat, supported)');
+    rename('Wed - Lower','Safety Bar Squat','Smith Machine Squat','2 × 5–8 | 1–2 RIR');
+    rename('Wed - Lower','Standing Calf Raise','Leg Press Calf Press','2 × 12–15');
+    rename('Fri - Upper B','Lat Pulldown','Pull-Ups','2 × 6–10 | 1–2 RIR (straight bar)');
+    rename('Fri - Upper B','Machine Chest Press','Smith Machine Incline Press','2 × 6–10 | 1–2 RIR (covers shoulders)');
+    drop('Fri - Upper B','Machine Shoulder Press');
+  }
+  programs._plan3x3equip=true;LS.set('programs',programs);
 }
 
 let _lsWarned=0;
