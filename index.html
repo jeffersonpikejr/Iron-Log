@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v20'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v21'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -479,7 +479,7 @@ function isToday(){const t=new Date(),d=V.date;return t.getFullYear()===d.getFul
 function getOrderedExercises(dayName){
   const cfg=PROGRAM[dayName];if(!cfg)return[];
   const prescribed=cfg.exercises;
-  const extras=(sess()._extras||[]).map(e=>({...e,isExtra:true}));
+  const extras=(sess()._extras||[]).filter(e=>!e.day||e.day===dayName).map(e=>({...e,isExtra:true})); // scope extras to their workout
   const all=[...prescribed,...extras];
   const order=exerciseOrder[dayName];
   if(!order)return all;
@@ -566,6 +566,7 @@ function moveWorkoutExercise(wkey,idx,dir){const cfg=activeProg().days[wkey];if(
 function setData(exName,si,field,val){
   const d=dk();
   if(!history[d])history[d]={_day:V.day};
+  if(history[d]._day==null&&V.day)history[d]._day=V.day; // attribute the day to the workout you log into
   if(!history[d][exName])history[d][exName]=[];
   while(history[d][exName].length<=si)history[d][exName].push({});
   history[d][exName][si][field]=val;
@@ -580,6 +581,7 @@ function setData(exName,si,field,val){
 function setCardio(exName,field,val){
   const d=dk();
   if(!history[d])history[d]={_day:V.day};
+  if(history[d]._day==null&&V.day)history[d]._day=V.day;
   if(!history[d][exName])history[d][exName]=[{}];
   if(!history[d][exName][0])history[d][exName][0]={};
   history[d][exName][0][field]=val;
@@ -633,16 +635,20 @@ function weeklyVol(){
 function doneCount(exercises){const s=sess();return exercises.filter(ex=>{const d=s[ex.name];if(!d)return false;
   if(ex.type==='cardio'||ex.type==='mobility')return d.length>0&&(d[0].notes||d[0].duration);
   return d.length>0&&d.some(x=>x.weight||x.reps)}).length}
-// True if this exercise was completed on day `d`.
-function exDoneOn(ex,d){const data=history[d]&&history[d][ex.name];if(!data)return false;
+// True if this exercise was completed on date `d` AS PART OF workout `wkey`. Each logged day records
+// history[d]._day = the workout it was logged under, so an exercise that appears on two days (e.g.
+// Shoulder Prehab on both upper days) only check-marks the day you actually did it — not both. Logs
+// without a _day tag fall back to a plain name match (legacy behaviour).
+function exDoneOn(ex,d,wkey){const s=history[d];if(!s)return false;const data=s[ex.name];if(!data)return false;
+  if(wkey&&s._day&&s._day!==wkey)return false;
   if(ex.type==='cardio'||ex.type==='mobility')return data.length>0&&(data[0].notes||data[0].duration);
   return data.length>0&&data.some(x=>x.weight||x.reps)}
-// Weekly completion for a workout: how many of its exercises were done on ANY day in `weekDays`
+// Weekly completion for workout `wkey`: how many of its exercises were done on ANY day in `weekDays`
 // (the Sun–Sat window of the viewed date), plus the most recent day any were done. This is what
 // lets Sunday's 2/7 stay visible on Thursday instead of resetting to the viewed day only.
-function weekDoneInfo(exercises,weekDays){let done=0,lastDay=null;
+function weekDoneInfo(wkey,exercises,weekDays){let done=0,lastDay=null;
   exercises.forEach(ex=>{let hit=false;
-    weekDays.forEach(d=>{if(exDoneOn(ex,d)){hit=true;if(!lastDay||d>lastDay)lastDay=d}});
+    weekDays.forEach(d=>{if(exDoneOn(ex,d,wkey)){hit=true;if(!lastDay||d>lastDay)lastDay=d}});
     if(hit)done++});
   return{done,lastDay}}
 
@@ -791,7 +797,7 @@ function renderHome(app){
   const curKey=dk(),WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   wks.forEach(dn=>{const cfg=PROGRAM[dn];if(!cfg)return;
     const t=cfg.exercises.length,lbl=wkLabel(dn);
-    const wi=weekDoneInfo(cfg.exercises,weekDays),done=wi.done,full=done===t&&t>0;
+    const wi=weekDoneInfo(dn,cfg.exercises,weekDays),done=wi.done,full=done===t&&t>0;
     // If it was last done on a different day this week, tag which day so Thursday shows "Sun" etc.
     const otherDay=(wi.lastDay&&wi.lastDay!==curKey)?WD[new Date(wi.lastDay+'T12:00:00').getDay()]:null;
     list.appendChild(h('button',{class:'day-card',style:{borderLeft:'4px solid '+cfg.color,background:full?cfg.color+'08':'var(--card)'},
@@ -997,13 +1003,18 @@ function renderSession(app){
 
   if(!V.reorder){
     list.appendChild(h('button',{class:'add-btn',style:{borderColor:V.showAdd?'var(--accent)':'#282838'},
-      onClick:()=>{V.showAdd=!V.showAdd;V.addFilter='';render()}},V.showAdd?'✕ Cancel':'+ Add Exercise'));
+      onClick:()=>{V.showAdd=!V.showAdd;V.addFilter='';V.addPermanent=false;render()}},V.showAdd?'✕ Cancel':'+ Add Exercise'));
     if(V.showAdd){
       const ap=h('div',{class:'add-panel'});
       const si=h('input',{class:'inp',type:'text',placeholder:'Search or type new exercise...',style:{marginBottom:'10px'}});
       si.value=V.addFilter;
       si.addEventListener('input',e=>{V.addFilter=e.target.value;renderAddList(ap,allEx)});
       ap.appendChild(si);setTimeout(()=>si.focus(),50);
+      // Default: added lifts are transient (this session only). Check this to keep it in the workout.
+      const cb=h('input',{type:'checkbox',style:{width:'16px',height:'16px'}});cb.checked=!!V.addPermanent;
+      cb.addEventListener('change',e=>{V.addPermanent=e.target.checked});
+      ap.appendChild(h('label',{style:{display:'flex',alignItems:'center',gap:'8px',margin:'0 2px 10px',fontSize:'12px',color:'#999',cursor:'pointer'}},
+        cb,h('span',null,'Add to this workout permanently ',h('span',{style:{color:'#666'}},'(otherwise just this session)'))));
       ap.appendChild(h('div',{id:'add-list-container'}));
       list.appendChild(ap);renderAddList(ap,allEx);
     }
@@ -1028,12 +1039,20 @@ function renderAddList(ap,allEx){
   c.appendChild(ol);
 }
 function addExtra2(name,type){
-  const d=dk();if(!history[d])history[d]={_day:V.day};if(!history[d]._extras)history[d]._extras=[];
-  if(history[d]._extras.find(e=>e.name===name))return;
-  history[d]._extras.push({name,rx:'Custom',type:type||'strength',sets:3});
+  const d=dk();if(!history[d])history[d]={_day:V.day};if(history[d]._day==null&&V.day)history[d]._day=V.day;
+  // "Add to workout" checked → make it a permanent part of THIS workout's template (shows every session).
+  if(V.addPermanent){
+    const ok=addWorkoutExercise(V.day,{name,rx:'',type:type||'strength',sets:(type==='cardio'||type==='mobility')?1:2});
+    if(ok===false)return; // duplicate (toast already shown)
+    V.showAdd=false;V.addFilter='';V.addPermanent=false;toast(name+' added to workout');render();return;
+  }
+  // Otherwise a transient extra: just for this workout, this day (does not persist to other days/workouts).
+  if(!history[d]._extras)history[d]._extras=[];
+  if(history[d]._extras.find(e=>e.name===name&&(e.day||V.day)===V.day))return;
+  history[d]._extras.push({name,rx:'Custom',type:type||'strength',sets:3,day:V.day});
   if(!customExercises.includes(name)&&!COMMON_EXTRAS.includes(name))customExercises.push(name);
-  V.showAdd=false;V.addFilter='';save();toast(name+' added');render();}
-function removeExtra(exName){const d=dk();if(history[d]){history[d]._extras=(history[d]._extras||[]).filter(e=>e.name!==exName);delete history[d][exName]}V.openEx=null;save()}
+  V.showAdd=false;V.addFilter='';save();toast(name+' added (this session)');render();}
+function removeExtra(exName){const d=dk();if(history[d]){history[d]._extras=(history[d]._extras||[]).filter(e=>!(e.name===exName&&(!e.day||e.day===V.day)));delete history[d][exName]}V.openEx=null;save()}
 
 // ─── PROGRAM BUILDER UI ───
 function editorHead(title,onBack,right){
