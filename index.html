@@ -113,14 +113,14 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v19'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v20'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
       {name:"Zone 2 Cardio",rx:"45–60 min @ 65–75% HRmax",type:"cardio",sets:1},
       {name:"Incline DB Press",rx:"2 × 6–8 | RIR 1",type:"strength",sets:2},
       {name:"Single-Arm DB Row",rx:"2 × 6–8 | RIR 1",type:"strength",sets:2},
-      {name:"Machine Lateral Raise",rx:"2 × 12–15 | To failure",type:"strength",sets:2},
+      {name:"Cable Lateral Raise",rx:"2 × 12–15 | To failure",type:"strength",sets:2},
       {name:"Rope Triceps Pushdown",rx:"1–2 × 10–12 | To failure",type:"strength",sets:2},
       {name:"Incline DB Curl",rx:"1–2 × 10–12 | To failure",type:"strength",sets:2},
     ]},
@@ -149,12 +149,12 @@ const DEFAULT_WORKOUTS = {
     ]},
   "Day 5 - Lower": {
     color:"#7c3aed",icon:"🦵",exercises:[
-      {name:"Safety Bar Squat",rx:"2 × 5–6 | RPE 7.5–8",type:"strength",sets:2},
+      {name:"Smith Machine Squat",rx:"2 × 5–6 | RPE 7.5–8",type:"strength",sets:2},
       {name:"Romanian Deadlift",rx:"2 × 6–8 | RIR 1",type:"strength",sets:2},
       {name:"Walking Lunges",rx:"1–2 × 10/leg | RIR 1",type:"strength",sets:2},
       {name:"Seated Leg Curl",rx:"1–2 × 10–12 | Near failure",type:"strength",sets:2},
       {name:"Seated Leg Extension",rx:"1–2 × 10–12 | Near failure",type:"strength",sets:2},
-      {name:"Standing Calf Raise",rx:"2 × 12–15 | Controlled",type:"strength",sets:2},
+      {name:"Leg Press Calf Press",rx:"2 × 12–15 | Controlled",type:"strength",sets:2},
     ]},
   "Day 6 - LSD": {
     color:"#0891b2",icon:"🏃",exercises:[
@@ -170,7 +170,7 @@ const DEFAULT_WORKOUTS = {
 };
 // Old defaults + common extras (all available via + Add Exercise)
 const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
-const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"],"Smith Machine Squat":["Quads","Glutes"],"Leg Press Calf Press":["Calves"],"Smith Machine Incline Press":["Chest","Delts"],"Pull-Ups":["Back"]};
+const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"],"Smith Machine Squat":["Quads","Glutes"],"Leg Press Calf Press":["Calves"],"Smith Machine Incline Press":["Chest","Delts"],"Pull-Ups":["Back"],"Seated DB Calf Raise":["Calves"]};
 // Weekly set targets [min,max] per muscle. Every muscle MUSCLE_MAP can produce is listed here so
 // nothing logged is silently dropped from the rollup (Traps/Calves/Core were previously untracked).
 const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Traps:[4,8],Arms:[5,7],Core:[6,12],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7],Calves:[6,10]};
@@ -264,7 +264,7 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
     {name:'Zone 2 Cardio',rx:'45–60 min @ 65–72% HRmax (bike or run)',type:'cardio',sets:1},
     {name:'Incline DB Press',rx:'2 × 6–8 | RIR 1',type:'strength',sets:2},
     {name:'Single-Arm DB Row',rx:'3 × 6–8 | RIR 1',type:'strength',sets:3},
-    {name:'Machine Lateral Raise',rx:'3 × 12–15 | to failure',type:'strength',sets:3},
+    {name:'Cable Lateral Raise',rx:'3 × 12–15 | to failure',type:'strength',sets:3},
     {name:'Rear Delt Cable Fly',rx:'2 × 12–15',type:'strength',sets:2},
     {name:'Rope Triceps Pushdown',rx:'1–2 × 10–12 | to failure',type:'strength',sets:2},
     {name:'Incline DB Curl',rx:'2 × 10–12 | RIR 0–1',type:'strength',sets:2}]},
@@ -277,13 +277,13 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
     {name:'DB Pullover',rx:'1–2 × 8–10 | RIR 1',type:'strength',sets:2},
     {name:'Pallof Press',rx:'2 × 12/side',type:'strength',sets:2}]},
   'Day 3 - Lower (heavy)':{color:'#7c3aed',icon:'🦵',exercises:[
-    {name:'Safety Bar Squat',rx:'2 × 5–6 | RPE 7.5–8',type:'strength',sets:2},
+    {name:'Smith Machine Squat',rx:'2 × 5–6 | RPE 7.5–8',type:'strength',sets:2},
     {name:'Seated Leg Curl',rx:'3 × 10–12 | near failure',type:'strength',sets:3},
-    {name:'45° Back Extension',rx:'2 × 8–10 | RIR 1–2 (or RDL @ RIR 2)',type:'strength',sets:2},
+    {name:'Romanian Deadlift',rx:'2 × 8–10 | RIR 2 (DB)',type:'strength',sets:2},
     {name:'Walking Lunges',rx:'1–2 × 10/leg | RIR 1',type:'strength',sets:2},
     {name:'Seated Leg Extension',rx:'1–2 × 10–12 | RIR 0–1',type:'strength',sets:2},
-    {name:'Seated Calf Raise',rx:'2–3 × 8–12 | RIR 2–3 (soleus)',type:'strength',sets:3},
-    {name:'Standing Calf Raise',rx:'2 × 12–15 (gastroc)',type:'strength',sets:2}]},
+    {name:'Seated DB Calf Raise',rx:'2–3 × 8–12 | RIR 2–3 (soleus)',type:'strength',sets:3},
+    {name:'Leg Press Calf Press',rx:'2 × 12–15 (gastroc)',type:'strength',sets:2}]},
   'Day 4 - Recovery + Mobility':{color:'#059669',icon:'🧘',exercises:[
     {name:'Zone 2 Recovery',rx:'45–60 min @ 65–72% HRmax (easy)',type:'cardio',sets:1},
     {name:'Mobility Circuit',rx:'10 min | hip CARs, ankle, t-spine',type:'mobility',sets:1},
@@ -440,6 +440,24 @@ if(!programs._plan3x3equip){
     drop('Fri - Upper B','Machine Shoulder Press');
   }
   programs._plan3x3equip=true;LS.set('programs',programs);
+}
+// Same apartment-gym pass for the two older programs (user asked to keep all three usable).
+// In-place renames by program id + day key; idempotent (skips if the old name is gone or the new one
+// already exists) so fresh seeds carrying the swaps are no-ops. Runs once.
+if(!programs._legacyEquip){
+  const rn=(id,k,oldN,newN,newRx)=>{const p=programs.list[id];if(!p||!p.days)return;const d=p.days[k];
+    if(!d||!Array.isArray(d.exercises))return;const e=d.exercises.find(x=>x.name===oldN);
+    if(!e||d.exercises.some(x=>x.name===newN))return;e.name=newN;if(newRx!=null)e.rx=newRx;
+    const ord=exerciseOrder[k];if(Array.isArray(ord)){const i=ord.indexOf(oldN);if(i>=0)ord[i]=newN}};
+  rn('vo2max-low-vol','Day 1 - Zone 2 + Arms/Delts','Machine Lateral Raise','Cable Lateral Raise');
+  rn('vo2max-low-vol','Day 5 - Lower','Safety Bar Squat','Smith Machine Squat');
+  rn('vo2max-low-vol','Day 5 - Lower','Standing Calf Raise','Leg Press Calf Press');
+  rn(V2_ID,'Day 1 - Zone 2 + Arms/Delts','Machine Lateral Raise','Cable Lateral Raise');
+  rn(V2_ID,'Day 3 - Lower (heavy)','Safety Bar Squat','Smith Machine Squat');
+  rn(V2_ID,'Day 3 - Lower (heavy)','45° Back Extension','Romanian Deadlift','2 × 8–10 | RIR 2 (DB)');
+  rn(V2_ID,'Day 3 - Lower (heavy)','Seated Calf Raise','Seated DB Calf Raise');
+  rn(V2_ID,'Day 3 - Lower (heavy)','Standing Calf Raise','Leg Press Calf Press');
+  programs._legacyEquip=true;LS.set('programs',programs);
 }
 
 let _lsWarned=0;
