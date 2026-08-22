@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v21'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v22'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -340,10 +340,9 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
   days:{
     'Mon - Upper A':{color:'#2563eb',icon:'💪',exercises:[
       {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
-      {name:'Incline DB Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Smith Machine Incline Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
       {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Chest-Supported Row',rx:'2 × 6–10 | 1–2 RIR (DB on incline bench)',type:'strength',sets:2},
-      {name:'Machine Chest Press',rx:'2 × 6–10 | 1–2 RIR (flat, supported)',type:'strength',sets:2},
+      {name:'Seated Cable Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR',type:'strength',sets:2},
       {name:'Incline DB Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
       {name:'Rope Triceps Pushdown',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
@@ -458,6 +457,23 @@ if(!programs._legacyEquip){
   rn(V2_ID,'Day 3 - Lower (heavy)','Seated Calf Raise','Seated DB Calf Raise');
   rn(V2_ID,'Day 3 - Lower (heavy)','Standing Calf Raise','Leg Press Calf Press');
   programs._legacyEquip=true;LS.set('programs',programs);
+}
+// Upper A personalization: user does one Smith incline press (replacing incline DB + machine chest)
+// and a seated cable row (no chest-supported-row option). Idempotent; runs once.
+if(!programs._plan3x3upperA){
+  const p=programs.list[PLAN3x3_ID];
+  if(p&&p.days){
+    const rename=(k,oldN,newN,newRx)=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises))return;
+      const e=d.exercises.find(x=>x.name===oldN);if(!e||d.exercises.some(x=>x.name===newN))return;
+      e.name=newN;if(newRx!=null)e.rx=newRx;
+      const ord=exerciseOrder[k];if(Array.isArray(ord)){const i=ord.indexOf(oldN);if(i>=0)ord[i]=newN}};
+    const drop=(k,n)=>{const d=p.days[k];if(d&&Array.isArray(d.exercises))d.exercises=d.exercises.filter(x=>x.name!==n);
+      const ord=exerciseOrder[k];if(Array.isArray(ord)){const i=ord.indexOf(n);if(i>=0)ord.splice(i,1)}};
+    rename('Mon - Upper A','Incline DB Press','Smith Machine Incline Press','2 × 6–8 | 1–2 RIR');
+    rename('Mon - Upper A','Chest-Supported Row','Seated Cable Row','2 × 6–10 | 1–2 RIR');
+    drop('Mon - Upper A','Machine Chest Press');
+  }
+  programs._plan3x3upperA=true;LS.set('programs',programs);
 }
 
 let _lsWarned=0;
