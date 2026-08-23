@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v23'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v24'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -169,8 +169,8 @@ const DEFAULT_WORKOUTS = {
     ]},
 };
 // Old defaults + common extras (all available via + Add Exercise)
-const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
-const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"],"Smith Machine Squat":["Quads","Glutes"],"Leg Press Calf Press":["Calves"],"Smith Machine Incline Press":["Chest","Delts"],"Pull-Ups":["Back"],"Seated DB Calf Raise":["Calves"]};
+const COMMON_EXTRAS=["Seated Cable Row","Wide-Grip Cable Pulldown","Kneeling Cable Lat Pulldown","Cable Shrugs","Chest-Supported Row","Lat Pulldown","DB Shrugs","Landmine Press","Face Pulls","Cable Crossover","Hammer Curl","Preacher Curl","Barbell Curl","Skull Crushers","Dips","Close-Grip Bench","Arnold Press","Seated DB Overhead Press","DB Lateral Raise","Upright Row","Barbell Row","T-Bar Row","Pendlay Row","Front Squat","Hack Squat","Leg Press","Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Conventional Deadlift","Hex-Bar Deadlift","Good Morning","Glute Ham Raise","Cable Crunch","Hanging Leg Raise","Ab Wheel","Farmer's Walk","Incline Walk","Stairmaster","Rowing Machine","Bike Sprint"];
+const MUSCLE_MAP={"Incline DB Press":["Chest"],"Machine Chest Press":["Chest"],"Cable Chest Press":["Chest"],"Landmine Press":["Chest","Delts"],"Low-Angle Cable Fly":["Chest"],"Cable Crossover":["Chest"],"Chest-Supported Row":["Back"],"Seated Cable Row":["Back"],"Single-Arm DB Row":["Back"],"Incline DB Row":["Back"],"DB Pullover":["Back","Chest"],"Neutral-Grip Pull-Ups":["Back"],"Lat Pulldown":["Back"],"Wide-Grip Cable Pulldown":["Back"],"Kneeling Cable Lat Pulldown":["Back"],"Barbell Row":["Back"],"T-Bar Row":["Back"],"Pendlay Row":["Back"],"Rear Delt Cable Fly":["Delts"],"Machine Lateral Raise":["Delts"],"DB Shrugs":["Traps"],"Cable Shrugs":["Traps"],"Face Pulls":["Delts"],"Arnold Press":["Delts"],"DB Lateral Raise":["Delts"],"Upright Row":["Delts"],"Rope Triceps Pushdown":["Arms"],"OH Rope Triceps Extension":["Arms"],"Incline DB Curl":["Arms"],"Skull Crushers":["Arms"],"Dips":["Arms","Chest"],"Close-Grip Bench":["Arms","Chest"],"Hammer Curl":["Arms"],"Preacher Curl":["Arms"],"Barbell Curl":["Arms"],"Safety Bar Squat":["Quads","Glutes"],"Walking Lunges":["Quads","Glutes"],"Seated Leg Extension":["Quads"],"Front Squat":["Quads"],"Hack Squat":["Quads"],"Leg Press":["Quads","Glutes"],"Bulgarian Split Squat":["Quads","Glutes"],"Romanian Deadlift":["Hamstrings","Glutes"],"Seated Leg Curl":["Hamstrings"],"Good Morning":["Hamstrings","Glutes"],"Glute Ham Raise":["Hamstrings"],"Hip Thrust":["Glutes"],"Standing Calf Raise":["Calves"],"Sumo Deadlift":["Glutes","Hamstrings"],"Conventional Deadlift":["Back","Hamstrings"],"Pallof Press":["Core"],"Cable Crunch":["Core"],"Hanging Leg Raise":["Core"],"Ab Wheel":["Core"],"45° Back Extension":["Hamstrings","Glutes"],"Seated Calf Raise":["Calves"],"Cable Hip Abduction":["Glutes"],"Farmer's Walk":["Traps","Core"],"Cable Lateral Raise":["Delts"],"Machine Shoulder Press":["Delts"],"Smith Machine Squat":["Quads","Glutes"],"Leg Press Calf Press":["Calves"],"Smith Machine Incline Press":["Chest","Delts"],"Pull-Ups":["Back"],"Seated DB Calf Raise":["Calves"],"Hex-Bar Deadlift":["Glutes","Hamstrings","Quads"],"Seated DB Overhead Press":["Delts"]};
 // Weekly set targets [min,max] per muscle. Every muscle MUSCLE_MAP can produce is listed here so
 // nothing logged is silently dropped from the rollup (Traps/Calves/Core were previously untracked).
 const VOL_TARGETS={Back:[12,14],Chest:[5,7],Delts:[5,7],Traps:[4,8],Arms:[5,7],Core:[6,12],Quads:[5,7],Hamstrings:[5,7],Glutes:[5,7],Calves:[6,10]};
@@ -343,16 +343,19 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
     'Mon - Upper A':{color:'#2563eb',icon:'💪',exercises:[
       {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
       {name:'Smith Machine Incline Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Seated DB Overhead Press',rx:'2 × 8–10 | 1–2 RIR · neutral grip, pain-free ROM',type:'strength',sets:2},
       {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Seated Cable Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR',type:'strength',sets:2},
       {name:'Incline DB Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
-      {name:'Rope Triceps Pushdown',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
+      {name:'Rope Triceps Pushdown',rx:'1 × 10–15 | optional',type:'strength',sets:1},
+      {name:'Dead Hang',rx:'1–2 × 30–60s · shoulder decompression + grip',type:'mobility',sets:1}]},
     'Tue - VO2max':{color:'#dc2626',icon:'💨',exercises:[
       {name:'VO2max 4×4',rx:'7–8 min w-up · 4 × [4 min hard / 3 min easy] · 4–5 min cd (~38 min)',type:'cardio',sets:1}]},
     'Wed - Lower':{color:'#7c3aed',icon:'🦵',exercises:[
+      {name:'Goblet Squat Hold',rx:'2 × 30–45s deep hold (KB/DB) · hip + ankle mobility',type:'mobility',sets:1},
+      {name:'Hex-Bar Deadlift',rx:'2 × 5–6 | RPE 7–8 · axial load for bone density',type:'strength',sets:2},
       {name:'Smith Machine Squat',rx:'2 × 5–8 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Romanian Deadlift',rx:'2 × 6–10 | 1–2 RIR (DB or Smith)',type:'strength',sets:2},
       {name:'Bulgarian Split Squat',rx:'1–2 × 8–12/leg | 1–2 RIR (DB)',type:'strength',sets:2},
       {name:'Seated Leg Curl',rx:'2 × 8–12 | 0–2 RIR',type:'strength',sets:2},
       {name:'Leg Press Calf Press',rx:'2 × 12–15',type:'strength',sets:2},
@@ -367,7 +370,8 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
       {name:'Leg Press',rx:'2 × 8–12 | 1–2 RIR (secondary legs)',type:'strength',sets:2},
       {name:'Face Pulls',rx:'2 × 12–20 | 1–2 RIR',type:'strength',sets:2},
       {name:'Hammer Curl',rx:'1 × 10–15 | optional',type:'strength',sets:1},
-      {name:'OH Rope Triceps Extension',rx:'1 × 10–15 | optional',type:'strength',sets:1}]},
+      {name:'OH Rope Triceps Extension',rx:'1 × 10–15 | optional',type:'strength',sets:1},
+      {name:"Farmer's Walk",rx:'2 × 30–40m heavy carry · brace + grip',type:'strength',sets:2}]},
     'Sat A - Threshold':{color:'#ea580c',icon:'🔥',exercises:[
       {name:'Threshold Run',rx:'8 min w-up · 20–25 min @ RPE 7–8 · 5 min cd',type:'cardio',sets:1}]},
     'Sat B - Endurance':{color:'#16a34a',icon:'🏃',exercises:[
@@ -476,6 +480,38 @@ if(!programs._plan3x3upperA){
     drop('Mon - Upper A','Machine Chest Press');
   }
   programs._plan3x3upperA=true;LS.set('programs',programs);
+}
+// Longevity pass — adds the movements the plan was missing vs. the healthspan checklist: re-add an
+// overhead press, a hex-bar deadlift (axial load for bone density, takes the RDL slot), plus loaded
+// carry / dead hang / deep-squat hold. Mirrors the edits the constant now carries onto already-seeded
+// copies. Idempotent (each item added only if absent; RDL→hex-bar is an in-place rename that keeps the
+// user's saved order), and exerciseOrder is kept in sync so positions hold even after reordering. Once.
+if(!programs._plan3x3longev){
+  const p=programs.list[PLAN3x3_ID];
+  if(p&&p.days){
+    const has=(k,n)=>{const d=p.days[k];return !!d&&Array.isArray(d.exercises)&&d.exercises.some(e=>e.name===n)};
+    const insAfter=(k,afterN,ex)=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises)||has(k,ex.name))return;
+      const i=d.exercises.findIndex(e=>e.name===afterN);d.exercises.splice(i>=0?i+1:d.exercises.length,0,ex);
+      const ord=exerciseOrder[k];if(Array.isArray(ord)){const j=ord.indexOf(afterN);ord.splice(j>=0?j+1:ord.length,0,ex.name)}};
+    const unshift=(k,ex)=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises)||has(k,ex.name))return;d.exercises.unshift(ex);
+      const ord=exerciseOrder[k];if(Array.isArray(ord))ord.unshift(ex.name)};
+    const push=(k,ex)=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises)||has(k,ex.name))return;d.exercises.push(ex);
+      const ord=exerciseOrder[k];if(Array.isArray(ord))ord.push(ex.name)};
+    const rename=(k,oldN,newN,newRx)=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises))return;
+      const e=d.exercises.find(x=>x.name===oldN);if(!e||d.exercises.some(x=>x.name===newN))return;
+      e.name=newN;if(newRx!=null)e.rx=newRx;e.type='strength';
+      const ord=exerciseOrder[k];if(Array.isArray(ord)){const i=ord.indexOf(oldN);if(i>=0)ord[i]=newN}};
+    // Mon - Upper A: overhead press after the incline press; dead hang finisher.
+    insAfter('Mon - Upper A','Smith Machine Incline Press',{name:'Seated DB Overhead Press',rx:'2 × 8–10 | 1–2 RIR · neutral grip, pain-free ROM',type:'strength',sets:2});
+    push('Mon - Upper A',{name:'Dead Hang',rx:'1–2 × 30–60s · shoulder decompression + grip',type:'mobility',sets:1});
+    // Wed - Lower: hex-bar takes the RDL slot (axial load / bone density); goblet-squat hold warmup on top.
+    rename('Wed - Lower','Romanian Deadlift','Hex-Bar Deadlift','2 × 5–6 | RPE 7–8 · axial load for bone density');
+    if(!has('Wed - Lower','Hex-Bar Deadlift'))insAfter('Wed - Lower','Smith Machine Squat',{name:'Hex-Bar Deadlift',rx:'2 × 5–6 | RPE 7–8 · axial load for bone density',type:'strength',sets:2});
+    unshift('Wed - Lower',{name:'Goblet Squat Hold',rx:'2 × 30–45s deep hold (KB/DB) · hip + ankle mobility',type:'mobility',sets:1});
+    // Fri - Upper B: loaded-carry finisher.
+    push('Fri - Upper B',{name:"Farmer's Walk",rx:'2 × 30–40m heavy carry · brace + grip',type:'strength',sets:2});
+  }
+  programs._plan3x3longev=true;LS.set('programs',programs);
 }
 
 let _lsWarned=0;
