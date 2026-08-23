@@ -1,6 +1,6 @@
 # The 3+3 Protocol
 
-*Iron Log · training reference · v25*
+*Iron Log · training reference · v26*
 
 A 12-week hybrid block for VO₂max, strength and healthspan — **three short lifts and three cardio sessions a week**, every *required* session inside 45 minutes, built around the equipment in an apartment gym.
 
@@ -9,7 +9,7 @@ A 12-week hybrid block for VO₂max, strength and healthspan — **three short l
 - **12 weeks** — across 6 periodization blocks
 - **1** — full rest day
 
-> This mirrors the in-app program (Iron Log **v25**). An interactive version — with a volume-wave chart and light/dark themes — is published as an artifact; the app itself is the source of truth for day-to-day tracking.
+> This mirrors the in-app program (Iron Log **v26**). An interactive version — with a volume-wave chart and light/dark themes — is published as an artifact; the app itself is the source of truth for day-to-day tracking.
 
 Legend: **RIR** = reps in reserve · **RPE** = perceived exertion (1–10) · ✦ = healthspan addition · *(bonus)* = earned by leftover time, auto-omitted in deload/taper/recovery · *(power)* = explosive, low-fatigue · *(mobility)* = not a working set.
 
@@ -41,13 +41,13 @@ Warm-up + power primer, then hinge / squat / single-leg / hamstrings / calves / 
 | Movement | Work | Cue |
 |----------|------|-----|
 | Goblet Squat Hold *(mobility)* | 1 × 30–45s | deep hold (KB/DB) · non-fatiguing · hip + ankle |
-| Box / Squat Jumps *(power)* | 2 × 3–5 | full recovery · stop before quality drops |
+| Box / Squat Jumps *(power)* | 2 × 3–5 | full recovery · stop before quality drops · skip if under-recovered |
 | Hex-Bar Deadlift ✦ | 2 × 5–6 | RPE 7–8 · axial load for bone density |
 | Smith Machine Squat | 2 × 5–8 | 1–2 RIR |
 | Bulgarian Split Squat | 1–2 × 8–12/leg | 1 hard set default · 2nd if time (DB) |
 | Seated Leg Curl | 2 × 8–12 | 0–2 RIR |
 | Leg Press Calf Press | 2 × 12–15 | full stretch at bottom |
-| Pallof Press *(optional)* | 1–2 × 10–12/side | anti-rotation (band/cable) |
+| Pallof Press *(bonus)* | 1–2 × 10–12/side | anti-rotation (band/cable) |
 
 ### 02 · Zone 2 — *Easy cardio, 30–45 min*
 
@@ -63,7 +63,7 @@ Incline + overhead press, vertical + horizontal pull, delts.
 | Seated DB Overhead Press ✦ | 2 × 8–10 | 1–2 RIR · neutral grip (landmine press if provocative) |
 | Neutral-Grip Pull-Ups | 2 × 6–10 | 1–2 RIR |
 | Seated Cable Row | 2 × 6–10 | 1–2 RIR |
-| Cable Lateral Raise | 1–2 × 12–15 | 0–2 RIR |
+| Cable Lateral Raise | 1–2 × 12–15 | 0–2 RIR · 1 required, 2nd if time |
 | **— Bonus round** | | *when 5–10 min remain · 1 round ≈ 5 min, 2 ≈ 10 · omitted in deload/taper/recovery* |
 | Cable Fly *(bonus)* | 1–2 × 10–20 | 1–2 RIR · chest |
 | Incline DB Curl *(bonus)* | 1–2 × 10–15 | 1–2 RIR · biceps |
@@ -72,7 +72,7 @@ Incline + overhead press, vertical + horizontal pull, delts.
 
 ### 04 · VO₂max Intervals — *Hard cardio, ~38 min*
 
-**4 × [4 min @ RPE 8–9 / 3 min easy]** · 7–8 min warm-up · 4–5 min cool-down.
+**4 × 4 min hard @ RPE 8–9** (3 min easy between) · 7–8 min warm-up · 4–5 min cool-down (~38 min).
 Progress **pace / watts, not heart rate** — HR drifts into the target during the back half of intervals 2–4.
 
 ### 05 · Upper B — *Lift, ~40 min*
@@ -81,12 +81,12 @@ Pull-led upper + posterior chain, secondary legs, loaded carry.
 | Movement | Work | Cue |
 |----------|------|-----|
 | Shoulder Prehab *(mobility)* | 1 round | band ER · wall slide · scap (~3 min) |
-| Pull-Ups | 2 × 6–10 | 1–2 RIR (straight bar) |
+| Pull-Ups | 2 × 6–10 | 1–2 RIR · straight or neutral grip, whichever's comfortable |
 | Smith Machine Incline Press | 2 × 6–10 | 1–2 RIR (covers shoulders) |
-| Smith Machine Good Morning | 1–2 × 8–12 | 3 → 1–2 RIR · 2–3s descent · never to failure (Smith RDL if awkward) |
+| Smith Machine Good Morning | 1–2 × 8–12 | 3 → 1–2 RIR · 2–3s descent · never to failure · 1 required, 2nd = capacity (Smith RDL if awkward) |
 | Seated Cable Row | 2 × 8–12 | 1–2 RIR |
 | Leg Press | 2 × 8–12 | 1–2 RIR · secondary legs |
-| Face Pulls | 2 × 12–20 | 1–2 RIR · rear delts / cuff |
+| Face Pulls | 1–2 × 12–20 | 1–2 RIR · rear delts / cuff · 1 required, 2nd = capacity |
 | Farmer's Walk ✦ | 2 × 30–40m | heavy carry · brace + grip |
 | **— Bonus round** | | *after all required work · omitted in deload/taper/recovery · pair dips + curls, ~90–120s between dip sets* |
 | Parallel-Bar Dips *(bonus)* | 1–2 × 6–12 | 1–2 RIR · assisted ok · upright-ish, stop ~parallel (start 1 set) |
@@ -107,18 +107,18 @@ The periodized wildcard; which one depends on the phase (see [Cardio by phase](#
 
 ## How it varies by period
 
-The weekly shape stays fixed; intensity and volume move through six blocks — build, back off, build again, sharpen. Strength volume across the 12 weeks: **100 → 50 → 100 → 50 → 100 → 50**.
+The weekly shape stays fixed; intensity and volume move through six blocks — build, back off, build again, sharpen. Strength volume across the 12 weeks: **100 → ≈50 → 100 → ≈50 → 100 → ≈50**.
 
 | Phase | Weeks | Volume | Main-lift sets | Lifting intent | VO₂ 4×4 | Saturday |
 |-------|:-----:|:------:|:--------------:|----------------|---------|----------|
 | Establish | 1–3 | 100% | 2 | set loads · ~2 RIR | full 4×4 | alternate Z2 / threshold |
-| Deload 1 | 4 | 50% | 1 | ~3–4 RIR · no bonus | 3×4 | easy Zone 2 |
+| Deload 1 | 4 | ≈50% | 1 | ~3–4 RIR · no bonus | 3×4 | easy Zone 2 |
 | Build | 5–7 | 100% | 2 | double progression · ~1–2 RIR | full 4×4 | threshold all 3 weeks |
-| Deload 2 | 8 | 50% | 1 | ~3–4 RIR · no bonus | 3×4 | easy Zone 2 |
+| Deload 2 | 8 | ≈50% | 1 | ~3–4 RIR · no bonus | 3×4 | easy Zone 2 |
 | Peak | 9–11 | 100% | 2 | final set ~1 RIR · no failed compounds | crisp 4×4 | alternate |
-| Taper | 12 | 50% | 1 | one crisp set · no bonus | 2 × 4 min early | easy aerobic |
+| Taper | 12 | ≈50% | 1 | one crisp set · no bonus | 2 × 4 min early | easy aerobic |
 
-**Sets math:** strength sets = `round(base × volume%)`, so a two-set lift becomes **one working set** in every deload and the taper — an honest **50%** cut (not the 30% the old label implied). **Build and Peak carry identical set volume**; they differ only in intent — Build progresses reps → load → RIR, Peak holds volume and lets the final main-lift set reach ~1 RIR (never a failed compound rep).
+**Sets math:** strength sets = `max(1, round(base × volume%))`, so a two-set lift becomes **one working set** in every deload and the taper — **≈ half** the volume (lifts already at one required set can't halve, so the session lands nearer 50–55%, and nothing ever rounds to zero). **Build and Peak carry identical set volume**; they differ only in intent — Build progresses reps → load → RIR, Peak holds volume and lets the final main-lift set reach ~1 RIR (never a failed compound rep).
 
 ---
 
@@ -127,8 +127,8 @@ The weekly shape stays fixed; intensity and volume move through six blocks — b
 Three aerobic qualities dialed through the wave.
 
 **VO₂max 4×4** (hard interval)
-- Establish: full 4 × [4 / 3] @ RPE 8–9
-- Deloads: 3 × [4 / 3] (~34 min)
+- Establish: full 4 × 4 min hard @ RPE 8–9 (3 min between)
+- Deloads: 3 × 4 min hard (~30–32 min)
 - Build: full 4×4 · progress work-interval pace
 - Peak: full 4×4 · high quality, crisp
 - Taper: 2 × 4 min at interval intensity early, then easy aerobic
@@ -152,6 +152,12 @@ Three aerobic qualities dialed through the wave.
 - Deloads: 35–45 min very easy
 - Taper: 25–35 min very easy
 
+**Dose & modality**
+- Keep a **consistent modality** — a bike or elliptical spares the eccentric/impact load running piles on top of leg day, and keeps pace/watts comparable week to week.
+- If your VO₂ estimate and interval pace are **flat after 6–8 weeks** with good recovery, replace **one** Build-week threshold with a second 4×4 — don't add a session.
+- In low-duration weeks, top up the weekly aerobic minimum (≈150 min moderate / 75 vigorous) with ordinary **brisk walking** — it closes the gap at almost no recovery cost.
+- The 4×4 is one weekly VO₂ stimulus (the original trials used three); expect real but not guaranteed gains — track average interval pace/watts as the primary signal.
+
 ---
 
 ## Bonus work & progression
@@ -165,6 +171,11 @@ The base program is the minimum that always gets done. Everything else is earned
 - **Omit entirely** during deloads, the taper, under-recovered days, and any week shoulder/elbow irritation is building.
 - **Never make up** skipped bonus work later — it's gravy, not debt.
 
+### Upper B clock (the tight session)
+Required floor: prehab · pull-ups (2) · Smith incline (2) · good morning (1) · cable row (2) · leg press (2) · face pulls (1) · Farmer's walk (2). The **2nd good-morning and face-pull sets are capacity**, not required.
+- Base done by **min 35 → up to two bonus rounds**; by **min 40 → one**; **after 40 → finish required work and stop**.
+- Superset non-competing pairs to buy time: pull-ups ↔ incline · cable row ↔ leg press · face pull ↔ Farmer's walk · dips ↔ hammer curls (≈90–120 s before repeating dips).
+
 ### Strength progression (double progression)
 - **Start** each range near its low end at ~2 RIR.
 - **Add reps** while holding technique and the RIR target.
@@ -173,7 +184,7 @@ The base program is the minimum that always gets done. Everything else is earned
 - **Keep off failure:** hex-bar, Smith squat, good morning, incline press, overhead press, pull-ups, dips (initially).
 
 ### 🌙 Under-recovered toggle
-Streamlines any session on the fly, independent of the block: strength lifts drop to one working set, hard intervals swap to easy Zone 2, and bonus lifts are removed. A rough-sleep day still counts — and you don't make it up later.
+Streamlines any session on the fly, independent of the block: strength lifts drop to one working set, hard intervals swap to easy Zone 2, bonus lifts are removed, and **explosive work (jumps) is dropped** — poor sleep is no time for max power. A rough-sleep day still counts — and you don't make it up later.
 
 ---
 
@@ -187,4 +198,4 @@ History-aware, given prior irritation:
 
 ---
 
-*Base prescriptions = Establish phase. Generated for the Iron Log 3+3 program (v25).*
+*Base prescriptions = Establish phase. Generated for the Iron Log 3+3 program (v26).*

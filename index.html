@@ -113,7 +113,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v25'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v26'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -312,20 +312,20 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
 // (Establish) rx/sets live on each exercise; other programs have no `.blocks` and are unaffected.
 const PLAN3x3_ID='vo2-30-45-3x3';
 const BLOCK_OVERRIDES={
-  deload1:{'VO2max 4×4':'7–8 min w-up · 3 × [4 min @ RPE 8–9 / 3 min easy] · cd (~34 min)','Threshold Run':'Deload → 30–40 min easy Zone 2 (skip threshold)','Zone 2 Endurance':'Deload → 35–45 min very easy Zone 2'},
+  deload1:{'VO2max 4×4':'7–8 min w-up · 3 × 4 min hard @ RPE 8–9 (3 min easy between) · cd (~30–32 min)','Threshold Run':'Deload → 30–40 min easy Zone 2 (skip threshold)','Zone 2 Endurance':'Deload → 35–45 min very easy Zone 2'},
   build:{'Threshold Run':'8 min w-up · ~25 min @ RPE 7–8 · 5 min cd (all 3 build weeks)','Zone 2 Cardio':'40–45 min continuous · RPE 3–4 · full sentences','Zone 2 Endurance':'40–45 min very easy Zone 2 · RPE 3'},
-  deload2:{'VO2max 4×4':'7–8 min w-up · 3 × [4 min @ RPE 8–9 / 3 min easy] · cd (~34 min)','Threshold Run':'Deload → 30–40 min easy Zone 2 (skip threshold)','Zone 2 Endurance':'Deload → 35–45 min very easy Zone 2'},
-  peak:{'VO2max 4×4':'7–8 min w-up · 4 × [4 min @ RPE 8–9 / 3 min easy] · cd · high quality','Threshold Run':'8 min w-up · 25–30 min @ RPE 7–8 · 5 min cd','Zone 2 Cardio':'40–45 min continuous · RPE 3–4','Zone 2 Endurance':'45 min very easy Zone 2 · RPE 3'},
+  deload2:{'VO2max 4×4':'7–8 min w-up · 3 × 4 min hard @ RPE 8–9 (3 min easy between) · cd (~30–32 min)','Threshold Run':'Deload → 30–40 min easy Zone 2 (skip threshold)','Zone 2 Endurance':'Deload → 35–45 min very easy Zone 2'},
+  peak:{'VO2max 4×4':'7–8 min w-up · 4 × 4 min hard @ RPE 8–9 (3 min easy between) · cd · high quality','Threshold Run':'8 min w-up · 25–30 min @ RPE 7–8 · 5 min cd','Zone 2 Cardio':'40–45 min continuous · RPE 3–4','Zone 2 Endurance':'45 min very easy Zone 2 · RPE 3'},
   taper:{'VO2max 4×4':'2 × 4 min @ RPE 8–9 (normal interval intensity) early in the week · then easy aerobic only','Threshold Run':'Taper → 25–30 min easy Zone 2','Zone 2 Cardio':'25–35 min very easy','Zone 2 Endurance':'25–35 min very easy Zone 2'},
 };
 // Phase notes (shared by the seed + the migration so both stay in sync). Saturday emphasis is baked
 // in: alternate early, threshold every build week, alternate again at peak. Deload/taper cut a
-// two-set lift to ONE working set — an honest 50% set reduction (see the 0.5 multiplier below).
+// two-set lift to ONE working set; already-one-set lifts can't halve, so total lands ≈ half (0.5 mult).
 const PLAN3x3_BLOCK_NOTES={
   establish:'Establish loads · ~2 RIR · full 4×4 · Sat: alternate Z2 / threshold',
-  deload1:'One working set (−50%) · ~3–4 RIR · Tue 3×4 · Sat = easy Zone 2 · no bonus work',
+  deload1:'One working set (≈ half volume) · ~3–4 RIR · Tue 3×4 · Sat = easy Zone 2 · no bonus work',
   build:'Double progression: reps → load → RIR (~1–2 RIR) · same set volume as Peak · threshold all 3 wks · Z2 → 40–45',
-  deload2:'One working set (−50%) · ~3–4 RIR · Tue 3×4 · Sat = easy Zone 2 · no bonus work',
+  deload2:'One working set (≈ half volume) · ~3–4 RIR · Tue 3×4 · Sat = easy Zone 2 · no bonus work',
   peak:'Same set volume as Build; final main-lift set ~1 RIR (no failed compounds) · crisp 4×4 · Sat: alternate',
   taper:'One crisp working set · no bonus work · 2 × 4 min intervals early, then easy aerobic · reassess',
 };
@@ -347,32 +347,32 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
       {name:'Seated DB Overhead Press',rx:'2 × 8–10 | 1–2 RIR · neutral grip, pain-free ROM (landmine press if provocative)',type:'strength',sets:2},
       {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Seated Cable Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
-      {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR',type:'strength',sets:2},
+      {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR · 2nd set if time',type:'strength',sets:1},
       {name:'Cable Fly',rx:'1–2 × 10–20 | 1–2 RIR · bonus round',type:'strength',sets:1,bonus:true},
       {name:'Incline DB Curl',rx:'1–2 × 10–15 | 1–2 RIR · bonus round',type:'strength',sets:1,bonus:true},
       {name:'Rope Triceps Pushdown',rx:'1–2 × 10–15 | 1–2 RIR · bonus round',type:'strength',sets:1,bonus:true},
       {name:'Dead Hang',rx:'1–2 × 30–60s · shoulder decompression + grip (partial/supported ok)',type:'mobility',sets:1}]},
     'Tue - VO2max':{color:'#dc2626',icon:'💨',exercises:[
-      {name:'VO2max 4×4',rx:'7–8 min w-up · 4 × [4 min @ RPE 8–9 / 3 min easy] · 4–5 min cd (~38 min) · progress pace/watts, not HR',type:'cardio',sets:1}]},
+      {name:'VO2max 4×4',rx:'7–8 min w-up · 4 × 4 min hard @ RPE 8–9 (3 min easy between) · 4–5 min cd (~38 min) · progress pace/watts, not HR',type:'cardio',sets:1}]},
     'Wed - Lower':{color:'#7c3aed',icon:'🦵',exercises:[
       {name:'Goblet Squat Hold',rx:'1 × 30–45s deep hold (KB/DB) · non-fatiguing · hip + ankle mobility',type:'mobility',sets:1},
-      {name:'Box / Squat Jumps',rx:'2 × 3–5 · full recovery · stop before quality drops',type:'strength',sets:2},
+      {name:'Box / Squat Jumps',rx:'2 × 3–5 · full recovery · stop before quality drops (skip if under-recovered)',type:'strength',sets:2,skipRecovery:true},
       {name:'Hex-Bar Deadlift',rx:'2 × 5–6 | RPE 7–8 · axial load for bone density',type:'strength',sets:2},
       {name:'Smith Machine Squat',rx:'2 × 5–8 | 1–2 RIR',type:'strength',sets:2},
       {name:'Bulgarian Split Squat',rx:'1–2 × 8–12/leg | 1–2 RIR (DB) · 2nd set if time',type:'strength',sets:1},
       {name:'Seated Leg Curl',rx:'2 × 8–12 | 0–2 RIR',type:'strength',sets:2},
       {name:'Leg Press Calf Press',rx:'2 × 12–15',type:'strength',sets:2},
-      {name:'Pallof Press',rx:'1–2 × 10–12/side | optional (band/cable)',type:'strength',sets:1}]},
+      {name:'Pallof Press',rx:'1–2 × 10–12/side | bonus (band/cable)',type:'strength',sets:1,bonus:true}]},
     'Thu - Zone 2':{color:'#059669',icon:'🫁',exercises:[
       {name:'Zone 2 Cardio',rx:'30–45 min · RPE 3–4 · aim 40–45 when time allows',type:'cardio',sets:1}]},
     'Fri - Upper B':{color:'#0891b2',icon:'💪',exercises:[
       {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
-      {name:'Pull-Ups',rx:'2 × 6–10 | 1–2 RIR (straight bar)',type:'strength',sets:2},
+      {name:'Pull-Ups',rx:"2 × 6–10 | 1–2 RIR (straight or neutral grip — whichever's comfortable)",type:'strength',sets:2},
       {name:'Smith Machine Incline Press',rx:'2 × 6–10 | 1–2 RIR (covers shoulders)',type:'strength',sets:2},
       {name:'Smith Machine Good Morning',rx:'1–2 × 8–12 | 3 → 1–2 RIR · 2–3s descent · never to failure (Smith RDL if awkward)',type:'strength',sets:1},
       {name:'Seated Cable Row',rx:'2 × 8–12 | 1–2 RIR',type:'strength',sets:2},
       {name:'Leg Press',rx:'2 × 8–12 | 1–2 RIR (secondary legs)',type:'strength',sets:2},
-      {name:'Face Pulls',rx:'2 × 12–20 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Face Pulls',rx:'1–2 × 12–20 | 1–2 RIR · 2nd set if time',type:'strength',sets:1},
       {name:"Farmer's Walk",rx:'2 × 30–40m heavy carry · brace + grip',type:'strength',sets:2},
       {name:'Parallel-Bar Dips',rx:'1–2 × 6–12 | 1–2 RIR · assisted ok · upright-ish, stop ~parallel · bonus',type:'strength',sets:1,bonus:true},
       {name:'Hammer Curl',rx:'1–2 × 10–15 | 1–2 RIR · bonus',type:'strength',sets:1,bonus:true},
@@ -574,6 +574,35 @@ if(!programs._plan3x3refine2){
       if(PLAN3x3_BLOCK_NOTES[b.id])b.note=PLAN3x3_BLOCK_NOTES[b.id];});
   }
   programs._plan3x3refine2=true;LS.set('programs',programs);
+}
+// v26 execution-fix pass — applies the "lock v25" review tweaks to already-seeded copies:
+//  • 4×4 notation reads "4 × 4 min hard (3 min easy between)" (3 recoveries, honest timing).
+//  • Deterministic base sets: Cable Lateral Raise & Face Pulls default to ONE set (+1 if time).
+//  • Pallof Press reclassified bonus (single term as the app logic; omitted in deload/taper/recovery).
+//  • Box/Squat Jumps flagged skipRecovery (omitted on under-recovered days — no max power on poor sleep).
+//  • Upper B pull-up cue allows straight OR neutral grip (shoulder guardrail).
+//  • Deload note wording → "≈ half volume" (one-set lifts can't halve). All idempotent. Runs once.
+if(!programs._plan3x3refine3){
+  const p=programs.list[PLAN3x3_ID];
+  if(p&&p.days){
+    const find=(k,n)=>{const d=p.days[k];return d&&Array.isArray(d.exercises)?d.exercises.find(e=>e.name===n):null};
+    const setRx=(k,n,rx)=>{const e=find(k,n);if(e)e.rx=rx};
+    const setF=(k,n,f,v)=>{const e=find(k,n);if(e)e[f]=v};
+    // 4×4 notation (base rx on the persisted day)
+    setRx('Tue - VO2max','VO2max 4×4','7–8 min w-up · 4 × 4 min hard @ RPE 8–9 (3 min easy between) · 4–5 min cd (~38 min) · progress pace/watts, not HR');
+    // Deterministic base sets
+    setRx('Mon - Upper A','Cable Lateral Raise','1–2 × 12–15 | 0–2 RIR · 2nd set if time');setF('Mon - Upper A','Cable Lateral Raise','sets',1);
+    setRx('Fri - Upper B','Face Pulls','1–2 × 12–20 | 1–2 RIR · 2nd set if time');setF('Fri - Upper B','Face Pulls','sets',1);
+    // Pallof → bonus
+    setRx('Wed - Lower','Pallof Press','1–2 × 10–12/side | bonus (band/cable)');setF('Wed - Lower','Pallof Press','bonus',true);
+    // Jumps → skip on recovery
+    setRx('Wed - Lower','Box / Squat Jumps','2 × 3–5 · full recovery · stop before quality drops (skip if under-recovered)');setF('Wed - Lower','Box / Squat Jumps','skipRecovery',true);
+    // Pull-up grip cue
+    setRx('Fri - Upper B','Pull-Ups',"2 × 6–10 | 1–2 RIR (straight or neutral grip — whichever's comfortable)");
+    // Refreshed phase notes (deload "≈ half")
+    if(Array.isArray(p.blocks))p.blocks.forEach(b=>{if(PLAN3x3_BLOCK_NOTES[b.id])b.note=PLAN3x3_BLOCK_NOTES[b.id]});
+  }
+  programs._plan3x3refine3=true;LS.set('programs',programs);
 }
 
 let _lsWarned=0;
@@ -954,9 +983,10 @@ function renderSession(app){
   let allEx=getOrderedExercises(V.day);
 
   const rec=isRecovery(),blk=activeBlock(),wdone=isWorkoutDone(V.day);
-  // Omit optional/bonus hypertrophy work on recovery days and in deload/taper phases.
+  // Omit optional/bonus hypertrophy work on recovery days and in deload/taper phases; also drop
+  // explosive work (skipRecovery, e.g. jumps) on a recovery day — poor recovery is no time for max power.
   const cut=blockIsCut();let hiddenBonus=0;
-  if(rec||cut){const before=allEx.length;allEx=allEx.filter(e=>!e.bonus);hiddenBonus=before-allEx.length;}
+  if(rec||cut){const before=allEx.length;allEx=allEx.filter(e=>!(e.bonus||(e.skipRecovery&&rec)));hiddenBonus=before-allEx.length;}
   app.appendChild(h('div',{class:'sess-head'},
     h('button',{class:'back-btn',onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;stopRest();render()}},'←'),
     h('div',{style:{flex:1,minWidth:0}},
@@ -977,7 +1007,7 @@ function renderSession(app){
   if(rec)list.appendChild(h('div',{style:{margin:'2px 2px 10px',padding:'8px 10px',background:'#f59e0b12',border:'1px solid #f59e0b30',borderRadius:'8px',color:'var(--amber)',fontSize:'11px',fontWeight:600,lineHeight:'1.5'}},
     '🌙 Recovery mode — streamlined: fewer working sets & easier targets. Tap 🌙 in the header to restore the full session.'));
   if(hiddenBonus)list.appendChild(h('div',{style:{margin:'2px 2px 10px',padding:'8px 10px',background:'#0c0c1a',border:'1px dashed var(--border)',borderRadius:'8px',color:'#8b93a2',fontSize:'11px',fontWeight:600,lineHeight:'1.5'}},
-    '📉 '+hiddenBonus+' bonus lift'+(hiddenBonus>1?'s':'')+' hidden — '+(rec?'recovery day':'deload/taper')+' omits optional hypertrophy work.'));
+    '📉 '+hiddenBonus+' item'+(hiddenBonus>1?'s':'')+' hidden — '+(rec?'recovery day omits optional & explosive work':'deload/taper omits optional hypertrophy work')+'.'));
 
   allEx.forEach((ex,i)=>{
     const isOpen=V.openEx===i&&!V.reorder;
