@@ -108,12 +108,29 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 .block-bar{width:calc(100% - 28px);margin:0 14px 8px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px}
 .block-select{background:#0c0c1a;border:1px solid var(--border);color:var(--gold);font:700 12px monospace;padding:6px 8px;border-radius:8px;outline:none;max-width:62%}
 .block-note{font-size:10px;color:#8a8aa0;line-height:1.5}
+.info-btn{flex-shrink:0;width:34px;align-self:stretch;display:flex;align-items:center;justify-content:center;background:#111122;border:1px solid #24243e;border-radius:8px;color:#8a8ab0;font-size:17px;line-height:1;cursor:pointer;padding:0}
+.info-btn:active{background:var(--accent);border-color:var(--accent);color:#fff}
+.set-actions{display:flex;gap:6px;margin-top:6px}
+.sec-btn{flex:1;background:#141428;border:1px solid #2a2a4a;color:var(--accent);padding:11px 8px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer}
+.sec-btn:active{background:var(--accent);color:#fff}
+.modal-scrim{position:fixed;inset:0;background:rgba(4,4,12,0.72);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:scrimIn .15s}
+.modal-card{width:100%;max-width:430px;max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--card);border:1px solid var(--border);border-bottom:none;border-radius:18px 18px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom,20px) + 20px);box-shadow:0 -8px 40px rgba(0,0,0,0.5);animation:sheetIn .18s ease-out}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:2px}
+.modal-title{font-size:16px;font-weight:800;color:#eee;line-height:1.25}
+.modal-x{flex-shrink:0;background:#1a1a2e;border:none;color:#999;width:30px;height:30px;border-radius:8px;font-size:15px;cursor:pointer}
+.modal-sec{margin-top:14px}
+.modal-sec .ml{font:700 10px sans-serif;color:var(--dim);letter-spacing:1.5px;margin-bottom:5px}
+.modal-sec .mb{font-size:13px;color:#cfcfe0;line-height:1.6}
+.modal-note{font-size:13px;color:#d5d5e6;line-height:1.55;background:#0c0c1a;border-left:2px solid #303052;border-radius:6px;padding:7px 10px;margin-bottom:5px}
+.modal-empty{font-size:12px;color:#666;font-style:italic;line-height:1.5}
+@keyframes scrimIn{from{opacity:0}to{opacity:1}}
+@keyframes sheetIn{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v26'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v27'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -220,6 +237,44 @@ const SEED_WEIGHTS={
   "Standing Calf Raise":[140,160,180,200,220,240],
 };
 const FALLBACK_WEIGHTS=[15,20,25,30,35,40,50,60];
+
+// ─── COACHING CUES ───
+// Static, curated set-up + mind-muscle-connection cues surfaced by the ⓘ button next to each exercise
+// (alongside the user's own notes from last session). "where applicable" — not every movement needs one.
+// Low-back guardrail is baked into every hinge/squat cue (brace, neutral spine, load over mid-foot).
+const CUES={
+  "Hex-Bar Deadlift":{setup:"Stand centered in the trap bar, feet hip-width. Hinge to grip the handles, drop the hips until the shins meet the bar, chest tall. Take a big breath into the belly and brace hard — like bracing for a punch — before you pull.",focus:"Push the floor away through mid-foot; drive hips and knees open together. Keep the bar path vertical and the spine neutral — no lumbar rounding off the floor, no hyperextension at lockout."},
+  "Smith Machine Squat":{setup:"Bar on the traps, feet set FORWARD of the bar (not directly under it) so the shins stay near-vertical and the load tracks mid-foot. Brace before you unrack — the fixed bar path won't self-correct for you.",focus:"Sit down between the hips, knees tracking over the toes. Keep ribs stacked over pelvis and resist the machine pulling you into lumbar hyperextension or a forward tip. If the low back keeps loading, swap to Leg Press."},
+  "Bulgarian Split Squat":{setup:"Rear foot on the bench, front foot far enough forward that the front shin stays ~vertical at the bottom. Slight forward torso lean from the hip, trunk braced.",focus:"Drive through the front mid-foot; feel the front-leg glute and quad. Keep the pelvis level and ribs down — don't arch the low back to reach depth."},
+  "Seated Leg Curl":{setup:"Pad just above the heels, thighs strapped, hips seated all the way back.",focus:"Curl with the hamstrings, not momentum. Squeeze hard at full flexion, control the eccentric — no hips lifting off the pad."},
+  "Leg Press Calf Press":{setup:"Balls of the feet on the platform edge, a slight constant knee bend.",focus:"Full stretch at the bottom, drive to a hard peak contraction. Pause both ends — no bouncing off the stretch."},
+  "Goblet Squat Hold":{setup:"Hold a KB/DB at the chest, elbows inside the knees, heels flat.",focus:"Sink into a deep, tall-spine squat and breathe — this is mobility, not a working set. Gently pry the knees out to open the hips and ankles."},
+  "Box / Squat Jumps":{setup:"Low box or soft floor, room to land. Skip entirely on poor sleep — no max power under-recovered.",focus:"Explode up, land soft and quiet with bent knees absorbing the load. Reset fully between reps; stop the moment jump height or landing quality drops."},
+  "Pallof Press":{setup:"Cable/band at chest height, stand side-on in an athletic or split stance, trunk braced.",focus:"Press straight out and RESIST the pull to rotate — the anti-rotation is the whole exercise. Slow, controlled, breathe through it."},
+  "Smith Machine Incline Press":{setup:"Bench ~30°, eyes just below the bar, feet planted, shoulder blades pinned down and back.",focus:"Touch high on the chest, elbows ~45° from the torso. Drive up and slightly back over the shoulders; keep the blades retracted throughout."},
+  "Seated DB Overhead Press":{setup:"Back supported, neutral/semi-neutral grip, dumbbells at ear height. Ribs down — don't let the press arch the low back.",focus:"Press to lockout without shrugging first; feel the delts do the work. Stay in a pain-free ROM (switch to a landmine press if it's provocative)."},
+  "Neutral-Grip Pull-Ups":{setup:"Full dead hang, then pack the shoulders down (un-shrug) before the first rep.",focus:"Lead with the elbows to the pockets and drive the chest toward the bar. Control the descent all the way back to a full hang."},
+  "Pull-Ups":{setup:"Dead hang, straight or neutral grip — whichever's comfortable. Pack the shoulders down before pulling.",focus:"Lead with the elbows, chest to the bar, no kipping. Lower under control to a full hang each rep."},
+  "Seated Cable Row":{setup:"Chest tall, a slight forward lean from the hips at the stretch, knees soft.",focus:"Row to the lower ribs and squeeze the shoulder blades together. Don't heave with the low back — the trunk stays quiet."},
+  "Cable Lateral Raise":{setup:"Cable running behind the body, slight forward lean, a soft fixed elbow.",focus:"Lead with the elbow and raise to shoulder height. Feel the side delt, not the traps — no shrug, no swing."},
+  "Face Pulls":{setup:"Rope at eye/forehead height, step back to load the cable, tall posture.",focus:"Pull to the forehead with thumbs rotating back and elbows high — rear delts and external rotators. Pause the squeeze at the end."},
+  "Smith Machine Good Morning":{setup:"Bar on the traps, soft knees, feet hip-width, hard trunk brace before you start.",focus:"Hinge at the hips and push the glutes straight back, 2–3s descent. Feel the hamstring stretch; keep the spine neutral and never take it to failure."},
+  "Leg Press":{setup:"Feet mid-platform, shoulder-width. Keep the low back flat against the pad — do not let it round at the bottom.",focus:"Lower to ~90° under control, drive through mid-foot. Keep the glutes down and stop the descent before the pelvis tucks under."},
+  "Farmer's Walk":{setup:"Heavy DBs/handles at the sides. Stand tall, brace the trunk, shoulders back and down.",focus:"Short, controlled steps; grip hard and keep ribs stacked over hips. Don't lean or sway — holding the brace under load is the point."},
+  "Parallel-Bar Dips":{setup:"Support with locked elbows, shoulders pulled down, a slight forward torso lean. Use assistance to hit the range.",focus:"Lower to about parallel (upper arm to the floor) staying upright-ish — never force deep shoulder extension. Drive up through the triceps and chest."},
+  "Hammer Curl":{setup:"Neutral grip, elbows pinned to the sides.",focus:"Curl without swinging the torso; squeeze at the top. Brachialis and forearm emphasis — lower slowly."},
+  "Incline DB Curl":{setup:"Bench set ~45–60°, arms hanging back for a full biceps stretch.",focus:"Curl from the deep stretch keeping the upper arm still. Squeeze at the top, lower under control."},
+  "Rope Triceps Pushdown":{setup:"High pulley, rope, elbows tight to the sides, slight forward lean.",focus:"Extend and spread the rope at the bottom, full triceps lockout. Keep the elbows from drifting forward."},
+  "OH Rope Triceps Extension":{setup:"Face away from a high/low pulley, rope overhead, elbows framing the head.",focus:"Extend to lockout, feeling the long head stretch and contract. Keep the elbows still and pointed forward."},
+  "Cable Fly":{setup:"Set the pulleys, soft fixed elbow, a slight forward stagger for balance.",focus:"Hug the arms together on a wide arc, squeeze the chest at the midline. Control the stretch — don't let the shoulders roll forward."},
+  "Dead Hang":{setup:"Neutral or pronated grip on the bar, let the whole body hang and the shoulders decompress.",focus:"Relax into it and breathe; optional light active-scap pulls. Grip and shoulder decompression — partial or supported is fine."},
+  "Shoulder Prehab":{setup:"Band and a wall. Keep it light — this primes the cuff and scaps, it's not a working set.",focus:"Band external rotations, wall slides, scap work through a pain-free range. Slow and deliberate — quality over reps."},
+  "Zone 2 Cardio":{setup:"Bike or elliptical to spare the legs after lifting and keep pace/watts comparable week to week.",focus:"Conversational effort (RPE 3–4 / nasal breathing, full sentences). Steady state — no surging. Both pace and HR are fine to watch here."},
+  "Zone 2 Recovery":{setup:"Easy modality, low impact.",focus:"Keep it genuinely easy (RPE 3) — this is active recovery, not a hidden workout. Blood flow, not fatigue."},
+  "Zone 2 Endurance":{setup:"Bike or easy run you can hold for the full block.",focus:"Very easy, conversational the whole way. Stretch the duration only when the window allows — never the intensity."},
+  "VO2max 4×4":{setup:"Warm up 7–8 min. Pick a modality you can safely push hard (bike/row/incline).",focus:"4 min hard @ RPE 8–9, then 3 min easy, repeated. Progress pace/watts, not HR — HR drifts into target on its own by intervals 2–4."},
+  "Threshold Run":{setup:"8 min progressive warm-up to threshold pace/effort.",focus:"'Comfortably hard' — RPE 7–8, controlled and repeatable. Hold form and rhythm; it should feel steady, not like a race."},
+};
 
 // ─── STORAGE ───
 const LS={get(k,d){try{const v=localStorage.getItem('ironlog-'+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem('ironlog-'+k,JSON.stringify(v));return true}catch(err){console.warn('LS write failed',err);return false}}};
@@ -610,7 +665,7 @@ function save(){const ok=[LS.set('history',history),LS.set('customs',customExerc
   if(!ok&&Date.now()-_lsWarned>5000){_lsWarned=Date.now();if(typeof toast==='function')toast('⚠️ Save failed — export your data')}}
 
 // ─── STATE ───
-let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false,
+let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false,infoEx:null,
   editWorkout:null,newProgOpen:false,addWkOpen:false,exEditIdx:null,wkEditOpen:false};
 function dk(){return V.date.toISOString().split('T')[0]}
 function sess(){return history[dk()]||{}}
@@ -739,6 +794,14 @@ function getPrev(exName){
     if(k===d)continue;const s=history[k]?.[exName];
     if(s?.length>0&&(s[0].weight||s[0].duration))return{date:k,sets:s}}
   return null;
+}
+// Notes the user logged the last time this exercise was performed (for the ⓘ popup). Uses the same
+// "last session" getPrev finds, then pulls any non-empty per-set notes (skips the '✓ Done' auto-mark).
+function lastNotes(exName){
+  const prev=getPrev(exName);if(!prev)return null;
+  const notes=[];
+  (prev.sets||[]).forEach((s,i)=>{const t=(s&&s.notes||'').trim();if(t&&t!=='✓ Done')notes.push({set:i+1,note:t})});
+  return{date:prev.date,notes};
 }
 function getPR(exName){
   let best=null;
@@ -988,7 +1051,7 @@ function renderSession(app){
   const cut=blockIsCut();let hiddenBonus=0;
   if(rec||cut){const before=allEx.length;allEx=allEx.filter(e=>!(e.bonus||(e.skipRecovery&&rec)));hiddenBonus=before-allEx.length;}
   app.appendChild(h('div',{class:'sess-head'},
-    h('button',{class:'back-btn',onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;stopRest();render()}},'←'),
+    h('button',{class:'back-btn',onClick:()=>{V.view='home';V.openEx=null;V.showAdd=false;V.reorder=false;V.infoEx=null;stopRest();render()}},'←'),
     h('div',{style:{flex:1,minWidth:0}},
       h('div',{style:{fontSize:'14px',fontWeight:700,color:wdone?'var(--green)':'#eee',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},(wdone?'✓ ':'')+cfg.icon+' '+wkName(V.day)),
       h('div',{style:{fontSize:'11px',color:'#666'}},fmtDate(V.date))),
@@ -1043,6 +1106,7 @@ function renderSession(app){
         hasData?h('span',{style:{color:'var(--green)',fontSize:'13px'}},'✓'):null,
         V.reorder?null:h('span',{style:{color:'#444',fontSize:'15px',transform:isOpen?'rotate(90deg)':'none',transition:'transform .15s'}},'›')));
     row.appendChild(btn);
+    if(!V.reorder)row.appendChild(h('button',{class:'info-btn',title:'Notes & cues',onClick:()=>{V.infoEx=ex.name;render()}},'ⓘ'));
     list.appendChild(row);
 
     if(isOpen){
@@ -1125,22 +1189,30 @@ function renderSession(app){
           }},v);ir.appendChild(b)});
         panel.appendChild(ir);
 
-        // Notes
-        if(cur.notes&&cur.notes.trim()){
-          panel.appendChild(h('label',{class:'field-label'},'NOTES'));
-          const ni=h('input',{class:'inp',type:'text',placeholder:'Form cue, tempo...'});
-          ni.value=cur.notes||'';ni.addEventListener('blur',e=>setData(ex.name,V.curSet,'notes',e.target.value));
-          panel.appendChild(ni);
-        } else {
-          panel.appendChild(h('button',{class:'note-toggle',onClick:()=>{setData(ex.name,V.curSet,'notes',' ');render()}},'+ note'))}
+        // Notes — a real, always-present text field (previously a dead "+ note" toggle that never
+        // opened an input because its ' ' placeholder trimmed to empty).
+        panel.appendChild(h('label',{class:'field-label'},'NOTES'));
+        const ni=h('input',{class:'inp notes-input',type:'text',placeholder:'Form cue, tempo, pain, RPE…'});
+        ni.value=(cur.notes||'').trim()===''?'':cur.notes; // don't surface a legacy ' ' placeholder
+        ni.addEventListener('blur',e=>setData(ex.name,V.curSet,'notes',e.target.value));
+        panel.appendChild(ni);
 
-        panel.appendChild(h('button',{class:'next-btn',onClick:()=>{
+        // ─── Set actions ─── consistent "Complete set"; on the final set, explicit ways to close out.
+        const commit=()=>{
           const cwi=panel.querySelector('.weight-custom');if(cwi&&cwi.value)setData(ex.name,V.curSet,'weight',parseFloat(cwi.value)||cwi.value);
           const cri=panel.querySelector('.reps-custom');if(cri&&cri.value)setData(ex.name,V.curSet,'reps',parseInt(cri.value)||cri.value);
-          startRest(V.restDur);
-          if(V.curSet<num-1){V.curSet++;render()}
-          else{toast(ex.name+' logged');V.openEx=i+1<allEx.length?i+1:null;V.curSet=0;render()}
-        }},isLast?'Done ✓':'Next Set →'));
+          const cni=panel.querySelector('.notes-input');if(cni){const v=cni.value;if(v.trim()||cur.notes)setData(ex.name,V.curSet,'notes',v)}
+        };
+        if(!isLast){
+          // More prescribed sets to go → one clear action that logs this set and advances to the next.
+          panel.appendChild(h('button',{class:'next-btn',onClick:()=>{commit();startRest(V.restDur);V.curSet++;render()}},'Complete set'));
+        } else {
+          // Final set → log it (stay put), or explicitly add another set / move to the next exercise.
+          panel.appendChild(h('button',{class:'next-btn',onClick:()=>{commit();startRest(V.restDur);toast(ex.name+' — set logged ✓');render()}},'Complete set'));
+          panel.appendChild(h('div',{class:'set-actions'},
+            h('button',{class:'sec-btn',onClick:()=>{commit();startRest(V.restDur);V.curSet++;render()}},'Add another set'),
+            h('button',{class:'sec-btn',onClick:()=>{commit();startRest(V.restDur);toast(ex.name+' logged');V.openEx=i+1<allEx.length?i+1:null;V.curSet=0;render()}},'Next exercise')));
+        }
       }
       if(ex.isExtra)panel.appendChild(h('button',{class:'remove-btn',onClick:()=>{removeExtra(ex.name);render()}},'Remove from session'));
       list.appendChild(panel);
@@ -1171,6 +1243,32 @@ function renderSession(app){
     }
   }
   scroll.appendChild(list);app.appendChild(scroll);
+  renderInfoModal(app);
+}
+
+// ─── ⓘ EXERCISE INFO SHEET ─── last-session notes + curated set-up / mind-muscle cues.
+function renderInfoModal(app){
+  if(!V.infoEx)return;
+  const name=V.infoEx,cue=CUES[name],ln=lastNotes(name);
+  const close=()=>{V.infoEx=null;render()};
+  const card=h('div',{class:'modal-card',onClick:e=>e.stopPropagation()},
+    h('div',{class:'modal-head'},
+      h('div',{class:'modal-title'},name),
+      h('button',{class:'modal-x',onClick:close},'✕')));
+  const notesSec=h('div',{class:'modal-sec'},h('div',{class:'ml'},'YOUR NOTES · LAST SESSION'));
+  if(ln&&ln.notes.length){
+    ln.notes.forEach(n=>notesSec.appendChild(h('div',{class:'modal-note'},(ln.notes.length>1?'S'+n.set+' — ':'')+n.note)));
+    notesSec.appendChild(h('div',{class:'modal-empty',style:{marginTop:'2px'}},'from '+ln.date));
+  } else if(ln){
+    notesSec.appendChild(h('div',{class:'modal-empty'},'No notes logged on '+ln.date+' — add one in the NOTES field while logging.'));
+  } else {
+    notesSec.appendChild(h('div',{class:'modal-empty'},'No history yet — notes you log will show up here next time.'));
+  }
+  card.appendChild(notesSec);
+  if(cue&&cue.setup)card.appendChild(h('div',{class:'modal-sec'},h('div',{class:'ml'},'SET-UP'),h('div',{class:'mb'},cue.setup)));
+  if(cue&&cue.focus)card.appendChild(h('div',{class:'modal-sec'},h('div',{class:'ml'},'MIND–MUSCLE FOCUS'),h('div',{class:'mb'},cue.focus)));
+  if(!cue)card.appendChild(h('div',{class:'modal-sec'},h('div',{class:'modal-empty'},'No set-up cues for this movement yet.')));
+  app.appendChild(h('div',{class:'modal-scrim',onClick:close},card));
 }
 
 function renderAddList(ap,allEx){

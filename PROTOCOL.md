@@ -1,6 +1,6 @@
 # The 3+3 Protocol
 
-*Iron Log · training reference · v26*
+*Iron Log · training reference · v27*
 
 A 12-week hybrid block for VO₂max, strength and healthspan — **three short lifts and three cardio sessions a week**, every *required* session inside 45 minutes, built around the equipment in an apartment gym.
 
@@ -9,7 +9,7 @@ A 12-week hybrid block for VO₂max, strength and healthspan — **three short l
 - **12 weeks** — across 6 periodization blocks
 - **1** — full rest day
 
-> This mirrors the in-app program (Iron Log **v26**). An interactive version — with a volume-wave chart and light/dark themes — is published as an artifact; the app itself is the source of truth for day-to-day tracking.
+> This mirrors the in-app program (Iron Log **v27**). An interactive version — with a volume-wave chart and light/dark themes — is published as an artifact; the app itself is the source of truth for day-to-day tracking.
 
 Legend: **RIR** = reps in reserve · **RPE** = perceived exertion (1–10) · ✦ = healthspan addition · *(bonus)* = earned by leftover time, auto-omitted in deload/taper/recovery · *(power)* = explosive, low-fatigue · *(mobility)* = not a working set.
 
@@ -198,4 +198,22 @@ History-aware, given prior irritation:
 
 ---
 
-*Base prescriptions = Establish phase. Generated for the Iron Log 3+3 program (v26).*
+## Lower-back guardrails
+
+Lower day stacks three hinge/axial patterns in one session (Hex-Bar Deadlift → Smith Squat → Bulgarian Split Squat), so the lumbar spine and erectors carry the day's cumulative load. These rules keep that load honest.
+
+- **Brace every working set.** Before each hinge or loaded squat — hex-bar, Smith squat, Bulgarian, good morning, Farmer's carry — take a big breath into the belly and brace as if bracing for a punch, then move. Exhale at the top, re-set the brace between reps on the heavy compounds.
+- **Neutral spine, load over mid-foot.** No lumbar rounding off the floor on the hex-bar; no hyperextension at lockout. Keep ribs stacked over the pelvis — don't arch the low back to chase depth or lockout.
+- **Smith squat setup is the sneaky one.** The fixed bar path won't self-correct. Set the feet **forward of the bar** so the shins stay near-vertical and the load tracks mid-foot. If the low back keeps eating the squat, **swap to Leg Press** (back-supported) — a known-good substitution already in the plan.
+- **Hex-bar is the axial dose, not a max.** Keep it RPE 7–8 with a clean brace; on any flagged/under-recovered day drop to RPE 6 and one set. It's there for bone density, not a PR.
+- **Manage the stack.** If the erectors are the limiter, cut the Bulgarian 2nd set or drop the jumps *before* you compromise position on the loaded hinge/squat. Position first, volume second.
+
+### 🚑 Flare protocol (acute low-back pain)
+- **Keep moving** — no bed rest. Walk, daylight, easy Zone 2 on the **bike** (spares the eccentric/impact load).
+- **McGill "big 3"** at a pain-free intensity (curl-up, side plank, bird-dog); heat over ice for muscular soreness; a short NSAID course if tolerated.
+- **Next Lower session, use the 🌙 under-recovered toggle:** one working set, **no jumps**, and **Smith squat → Leg Press** until you can brace and hinge a bodyweight pattern pain-free. Rebuild load over 1–2 sessions.
+- **Red flags — stop and get assessed:** pain radiating below the knee, numbness/tingling, or pain that's worse with flexion/sitting/coughing. **Saddle anesthesia or any bowel/bladder change is urgent** (cauda equina) — that's an ED visit, not a deload.
+
+---
+
+*Base prescriptions = Establish phase. Generated for the Iron Log 3+3 program (v27).*
