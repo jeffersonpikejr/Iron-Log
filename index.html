@@ -795,13 +795,18 @@ function getPrev(exName){
     if(s?.length>0&&(s[0].weight||s[0].duration))return{date:k,sets:s}}
   return null;
 }
-// Notes the user logged the last time this exercise was performed (for the ⓘ popup). Uses the same
-// "last session" getPrev finds, then pulls any non-empty per-set notes (skips the '✓ Done' auto-mark).
+// Notes for the ⓘ popup: the most recent PRIOR day this exercise carries a real note. Scans history
+// directly (not getPrev, which requires weight/duration) so a note-only session — e.g. "skipped, back
+// pain" with no load — still surfaces. Skips today and the '✓ Done' auto-mark.
 function lastNotes(exName){
-  const prev=getPrev(exName);if(!prev)return null;
-  const notes=[];
-  (prev.sets||[]).forEach((s,i)=>{const t=(s&&s.notes||'').trim();if(t&&t!=='✓ Done')notes.push({set:i+1,note:t})});
-  return{date:prev.date,notes};
+  const d=dk();
+  for(const k of Object.keys(history).sort().reverse()){
+    if(k===d)continue;const s=history[k]?.[exName];if(!Array.isArray(s))continue;
+    const notes=[];
+    s.forEach((set,i)=>{const t=(set&&set.notes||'').trim();if(t&&t!=='✓ Done')notes.push({set:i+1,note:t})});
+    if(notes.length)return{date:k,notes};
+  }
+  return null;
 }
 function getPR(exName){
   let best=null;
@@ -1094,7 +1099,7 @@ function renderSession(app){
 
     const btn=h('button',{class:'ex-btn',style:{borderLeft:'3px solid '+(hasData?'var(--green)':ex.isExtra?'var(--amber)':cfg.color)},
       onClick:()=>{if(V.reorder)return;
-        if(!isOpen){const a=sess()[ex.name];if(Array.isArray(a)){const c=a.filter(s=>s&&(s.weight||s.reps));
+        if(!isOpen){const a=sess()[ex.name];if(Array.isArray(a)){const c=a.filter(s=>s&&(s.weight||s.reps||s.duration||s.speed||s.elevation||(s.notes&&String(s.notes).trim())));
           if(c.length!==a.length){if(c.length)history[dk()][ex.name]=c;else delete history[dk()][ex.name];save()}}}
         V.openEx=isOpen?null:i;V.curSet=0;render()}},
       h('div',{style:{flex:1}},
@@ -1194,7 +1199,9 @@ function renderSession(app){
         panel.appendChild(h('label',{class:'field-label'},'NOTES'));
         const ni=h('input',{class:'inp notes-input',type:'text',placeholder:'Form cue, tempo, pain, RPE…'});
         ni.value=(cur.notes||'').trim()===''?'':cur.notes; // don't surface a legacy ' ' placeholder
-        ni.addEventListener('blur',e=>setData(ex.name,V.curSet,'notes',e.target.value));
+        // Guard the write so blurring an untouched field can't stamp a phantom {notes:''} session
+        // (matches commit()); only persist when there's text or an existing note to clear.
+        ni.addEventListener('blur',e=>{const v=e.target.value;if(v.trim()||cur.notes)setData(ex.name,V.curSet,'notes',v)});
         panel.appendChild(ni);
 
         // ─── Set actions ─── consistent "Complete set"; on the final set, explicit ways to close out.
