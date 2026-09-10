@@ -854,10 +854,17 @@ function lastNotes(exName){
   }
   return null;
 }
+// "PR" = the best single set by estimated 1RM (Epley: w·(1+reps/30)), NOT just the heaviest load — so
+// progressing REPS at a fixed weight counts as a new PR, which is exactly how this program advances most
+// lifts (double progression: add reps before load). Reps break exact e1RM ties, which is what ranks
+// bodyweight / 0-load sets (every rep count estimates to 0 there). Returns the actual logged set, so the
+// displayed "75lb × 12 reps" is always a real entry, never a computed number.
 function getPR(exName){
-  let best=null;
+  let best=null,bestE=-1,bestR=-1;
   Object.keys(history).forEach(d=>{const s=history[d]?.[exName];if(!Array.isArray(s))return;
-    s.forEach(set=>{const w=parseFloat(set.weight);if(!isNaN(w)&&(!best||w>best.weight))best={weight:w,reps:set.reps||'?',date:d}})});
+    s.forEach(set=>{const w=parseFloat(set.weight);if(isNaN(w))return;
+      const r=parseFloat(set.reps),reps=isNaN(r)?1:r,e1rm=w*(1+reps/30);
+      if(e1rm>bestE||(e1rm===bestE&&reps>bestR)){bestE=e1rm;bestR=reps;best={weight:w,reps:set.reps||'?',date:d}}})});
   return best;
 }
 function getWeights(exName){
@@ -1570,10 +1577,13 @@ async function exportXlsx(){
         (MUSCLE_MAP[ex]||[]).forEach(m=>{const sets=Array.isArray(history[d][ex])?history[d][ex].filter(s=>s.weight||s.reps):[];vol[m]=(vol[m]||0)+sets.length})})});
       vr.push([ws2.toISOString().split('T')[0],...volCols.map(m=>vol[m]||0)]);ws2.setDate(ws2.getDate()+7)}}
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(vr),'Weekly Volume');
-  const pr=[['Exercise','Best Weight','Reps','Date','Muscles']];const pm={};
+  // Best set by estimated 1RM (Epley), matching the in-app ALL-TIME PR so the sheet agrees with the app.
+  const pr=[['Exercise','Weight','Reps','Date','Est. 1RM','Muscles']];const pm={};
   dates.forEach(d=>{Object.keys(history[d]).forEach(ex=>{if(ex.startsWith('_'))return;
-    (history[d][ex]||[]).forEach(s=>{const w=parseFloat(s.weight);if(!isNaN(w)&&(!pm[ex]||w>pm[ex].w))pm[ex]={w,r:s.reps||'',d}})})});
-  Object.keys(pm).sort().forEach(ex=>pr.push([ex,pm[ex].w,pm[ex].r,pm[ex].d,(MUSCLE_MAP[ex]||[]).join(', ')]));
+    (history[d][ex]||[]).forEach(s=>{const w=parseFloat(s.weight);if(isNaN(w))return;
+      const r=parseFloat(s.reps),reps=isNaN(r)?1:r,e=w*(1+reps/30);
+      if(!pm[ex]||e>pm[ex].e||(e===pm[ex].e&&reps>pm[ex].reps))pm[ex]={w,r:s.reps||'',d,e,reps}})})});
+  Object.keys(pm).sort().forEach(ex=>pr.push([ex,pm[ex].w,pm[ex].r,pm[ex].d,Math.round(pm[ex].e*10)/10,(MUSCLE_MAP[ex]||[]).join(', ')]));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pr),'PRs');
   XLSX.writeFile(wb,'IronLog-'+dk()+'.xlsx');toast('Excel exported!')}
 
