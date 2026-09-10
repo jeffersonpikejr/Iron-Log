@@ -1,6 +1,6 @@
 # The 3+3 Protocol
 
-*Iron Log · training reference · v27*
+*Iron Log · training reference · v28*
 
 A 12-week hybrid block for VO₂max, strength and healthspan — **three short lifts and three cardio sessions a week**, every *required* session inside 45 minutes, built around the equipment in an apartment gym.
 
@@ -9,7 +9,7 @@ A 12-week hybrid block for VO₂max, strength and healthspan — **three short l
 - **12 weeks** — across 6 periodization blocks
 - **1** — full rest day
 
-> This mirrors the in-app program (Iron Log **v27**). An interactive version — with a volume-wave chart and light/dark themes — is published as an artifact; the app itself is the source of truth for day-to-day tracking.
+> This mirrors the in-app program (Iron Log **v28**). An interactive version — with a volume-wave chart and light/dark themes — is published as an artifact; the app itself is the source of truth for day-to-day tracking.
 
 Legend: **RIR** = reps in reserve · **RPE** = perceived exertion (1–10) · ✦ = healthspan addition · *(bonus)* = earned by leftover time, auto-omitted in deload/taper/recovery · *(power)* = explosive, low-fatigue · *(mobility)* = not a working set.
 
@@ -61,7 +61,7 @@ Incline + overhead press, vertical + horizontal pull, delts.
 | Shoulder Prehab *(mobility)* | 1 round | band ER · wall slide · scap (~3 min) |
 | Smith Machine Incline Press | 2 × 6–8 | 1–2 RIR |
 | Seated DB Overhead Press ✦ | 2 × 8–10 | 1–2 RIR · neutral grip (landmine press if provocative) |
-| Neutral-Grip Pull-Ups | 2 × 6–10 | 1–2 RIR |
+| Pull-Ups | 2 × 6–10 | 1–2 RIR · straight or neutral grip, whichever's comfortable |
 | Seated Cable Row | 2 × 6–10 | 1–2 RIR |
 | Cable Lateral Raise | 1–2 × 12–15 | 0–2 RIR · 1 required, 2nd if time |
 | **— Bonus round** | | *when 5–10 min remain · 1 round ≈ 5 min, 2 ≈ 10 · omitted in deload/taper/recovery* |
@@ -216,4 +216,4 @@ Lower day stacks three hinge/axial patterns in one session (Hex-Bar Deadlift →
 
 ---
 
-*Base prescriptions = Establish phase. Generated for the Iron Log 3+3 program (v27).*
+*Base prescriptions = Establish phase. Generated for the Iron Log 3+3 program (v28).*

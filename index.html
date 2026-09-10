@@ -130,7 +130,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v27'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v28'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -144,7 +144,7 @@ const DEFAULT_WORKOUTS = {
   "Day 2 - 4x4 + Pull": {
     color:"#dc2626",icon:"💨",exercises:[
       {name:"4×4 Protocol",rx:"4→5 × [4min @90–95% HRmax / 3min jog] · +1 interval q1–2wk, cap 5",type:"cardio",sets:1},
-      {name:"Neutral-Grip Pull-Ups",rx:"2 × 6–8 | RIR 1",type:"strength",sets:2},
+      {name:"Pull-Ups",rx:"2 × 6–8 | RIR 1 (neutral grip)",type:"strength",sets:2},
       {name:"DB Pullover",rx:"1–2 × 8–10 | RIR 1",type:"strength",sets:2},
       {name:"Incline DB Row",rx:"2 × 12–15",type:"strength",sets:2},
       {name:"Rear Delt Cable Fly",rx:"2 × 12–15 | To failure",type:"strength",sets:2},
@@ -213,6 +213,7 @@ const REST_OPTS=[{label:"1:30",sec:90},{label:"3:00",sec:180},{label:"5:00",sec:
 const SEED_WEIGHTS={
   "Incline DB Press":[100,110,120,130,140,150],
   "Chest-Supported Row":[70,75,80,82.5,85,90],
+  "Seated Cable Row":[70,80,90,100,110,120,130],
   "Single-Arm DB Row":[30,35,40,45,50,55,60],
   "Incline DB Row":[20,25,30,35,40,45],
   "DB Pullover":[25,30,35,40,45,50],
@@ -225,6 +226,7 @@ const SEED_WEIGHTS={
   "Low-Angle Cable Fly":[15,17.5,20,22.5,25,27.5],
   "OH Rope Triceps Extension":[30,35,37.5,39,42.5,45],
   "Neutral-Grip Pull-Ups":[0,5,10,15,20,25],
+  "Pull-Ups":[0,5,10,15,20,25],
   "Lat Pulldown":[85,90,95,97.5,100,105],
   "DB Shrugs":[35,40,45,50,55,60,65,70,75,80],
   "Rear Delt Cable Fly":[70,80,85,90,100],
@@ -328,7 +330,7 @@ const V2_PROGRAM={name:'VO2Max v2 (panel-optimized)',dayOrder:[
   'Day 2 - 4×4 + Pull':{color:'#dc2626',icon:'💨',exercises:[
     {name:'Warm-up + Strides',rx:'12–15 min easy→moderate + 3 × 20s strides',type:'cardio',sets:1},
     {name:'4×4 Protocol',rx:'4→5 × [4min @90–95% HRmax / 3min jog] · +1 interval q1–2wk, cap 5',type:'cardio',sets:1},
-    {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–8 | RIR 1',type:'strength',sets:2},
+    {name:'Pull-Ups',rx:'2 × 6–8 | RIR 1 (neutral grip)',type:'strength',sets:2},
     {name:'Kneeling Cable Lat Pulldown',rx:'2 × 8–10 | RIR 1',type:'strength',sets:2},
     {name:'Incline DB Row',rx:'2 × 12–15',type:'strength',sets:2},
     {name:'DB Pullover',rx:'1–2 × 8–10 | RIR 1',type:'strength',sets:2},
@@ -400,7 +402,7 @@ const PLAN3x3_PROGRAM={name:'VO₂Max 30–45 (3+3)',
       {name:'Shoulder Prehab',rx:'band ER ×12–15 · wall slide ×8–10 · scap ×5–8 (~3 min)',type:'mobility',sets:1},
       {name:'Smith Machine Incline Press',rx:'2 × 6–8 | 1–2 RIR',type:'strength',sets:2},
       {name:'Seated DB Overhead Press',rx:'2 × 8–10 | 1–2 RIR · neutral grip, pain-free ROM (landmine press if provocative)',type:'strength',sets:2},
-      {name:'Neutral-Grip Pull-Ups',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
+      {name:'Pull-Ups',rx:"2 × 6–10 | 1–2 RIR (straight or neutral grip — whichever's comfortable)",type:'strength',sets:2},
       {name:'Seated Cable Row',rx:'2 × 6–10 | 1–2 RIR',type:'strength',sets:2},
       {name:'Cable Lateral Raise',rx:'1–2 × 12–15 | 0–2 RIR · 2nd set if time',type:'strength',sets:1},
       {name:'Cable Fly',rx:'1–2 × 10–20 | 1–2 RIR · bonus round',type:'strength',sets:1,bonus:true},
@@ -615,7 +617,7 @@ if(!programs._plan3x3refine2){
     setRx('Fri - Upper B','OH Rope Triceps Extension','1 × 10–15 | 1–2 RIR · bonus (skip if dips done)');bonus('Fri - Upper B','OH Rope Triceps Extension');
     // Canonical re-sort of the restructured days (keeps user-added extras at the end)
     const CANON={
-      'Mon - Upper A':['Shoulder Prehab','Smith Machine Incline Press','Seated DB Overhead Press','Neutral-Grip Pull-Ups','Seated Cable Row','Cable Lateral Raise','Cable Fly','Incline DB Curl','Rope Triceps Pushdown','Dead Hang'],
+      'Mon - Upper A':['Shoulder Prehab','Smith Machine Incline Press','Seated DB Overhead Press','Pull-Ups','Seated Cable Row','Cable Lateral Raise','Cable Fly','Incline DB Curl','Rope Triceps Pushdown','Dead Hang'],
       'Wed - Lower':['Goblet Squat Hold','Box / Squat Jumps','Hex-Bar Deadlift','Smith Machine Squat','Bulgarian Split Squat','Seated Leg Curl','Leg Press Calf Press','Pallof Press'],
       'Fri - Upper B':['Shoulder Prehab','Pull-Ups','Smith Machine Incline Press','Smith Machine Good Morning','Seated Cable Row','Leg Press','Face Pulls',"Farmer's Walk",'Parallel-Bar Dips','Hammer Curl','OH Rope Triceps Extension'],
     };
@@ -663,6 +665,50 @@ if(!programs._plan3x3refine3){
 let _lsWarned=0;
 function save(){const ok=[LS.set('history',history),LS.set('customs',customExercises),LS.set('weights',weightMemory),LS.set('order',exerciseOrder),LS.set('programs',programs)].every(Boolean);
   if(!ok&&Date.now()-_lsWarned>5000){_lsWarned=Date.now();if(typeof toast==='function')toast('⚠️ Save failed — export your data')}}
+
+// ─── Merge Upper A / Upper B duplicate-movement tracking ───
+// Upper A and Upper B titled the SAME movement two slightly different ways, and because history / PRs /
+// weight memory are keyed by exercise NAME (see the note by the storage block), that split one movement's
+// weight+rep progression across the two days. Canonicalize each such pair to a single name so the two days
+// share one progression line:
+//   • "Neutral-Grip Pull-Ups" → "Pull-Ups"          (Upper A pull-up ≡ Upper B pull-up)
+//   • "Chest-Supported Row"   → "Seated Cable Row"   (the old Upper A row — already renamed in the program
+//                                                     by _plan3x3upperA, but past logs still sit under it)
+// Genuinely distinct lifts are left untouched (rope pushdown vs. overhead extension, incline vs. hammer curl).
+// UNLIKE the earlier renames — which deliberately left past logs where they were — this one also folds the
+// logged history + weight memory onto the canonical name, because consolidating that past data is the whole
+// point of the request. The paired names share a muscle group, so the volume/PR rollups are unchanged. The
+// merge is a non-destructive UNION (sets are moved, or appended when both names have data on one date — never
+// overwritten or dropped), and the whole pass is flag-guarded + idempotent (runs once).
+if(!programs._upperMergeTracking){
+  const MERGE={'Neutral-Grip Pull-Ups':'Pull-Ups','Chest-Supported Row':'Seated Cable Row'};
+  // 1) Program definitions — rename in every seeded program's days, keeping the saved per-day order in sync.
+  //    If a day already carries the canonical name, drop the duplicate synonym entry (its logged sets are
+  //    preserved by the history merge in step 2).
+  Object.values(programs.list||{}).forEach(p=>{if(!p||!p.days||typeof p.days!=='object')return;
+    Object.keys(p.days).forEach(k=>{const d=p.days[k];if(!d||!Array.isArray(d.exercises))return;
+      d.exercises=d.exercises.filter(e=>{const c=e&&MERGE[e.name];if(!c)return true;
+        if(d.exercises.some(x=>x!==e&&x.name===c))return false; // canonical already present → drop synonym
+        e.name=c;return true;});
+      const ord=exerciseOrder[k];
+      if(Array.isArray(ord))exerciseOrder[k]=ord.reduce((a,n)=>{const c=MERGE[n]||n;if(!a.includes(c))a.push(c);return a},[]);
+    });
+  });
+  // Re-attach the grip cue Upper A used to carry in its name (guarded so a hand-edited rx is left alone).
+  const uaPull=((programs.list[PLAN3x3_ID]||{}).days||{});
+  const uaEx=(uaPull['Mon - Upper A']||{}).exercises||[];const up=uaEx.find(e=>e.name==='Pull-Ups');
+  if(up&&up.rx==='2 × 6–10 | 1–2 RIR')up.rx="2 × 6–10 | 1–2 RIR (straight or neutral grip — whichever's comfortable)";
+  // 2) Logged history — move each synonym's sets onto the canonical name per date; append (union) when both
+  //    exist on one date so no session's sets are lost. Meta keys (_day/_extras/_recovery/…) are untouched.
+  Object.keys(history).forEach(d=>{const rec=history[d];if(!rec||typeof rec!=='object')return;
+    for(const syn in MERGE){const c=MERGE[syn];if(!Array.isArray(rec[syn]))continue;
+      rec[c]=Array.isArray(rec[c])?rec[c].concat(rec[syn]):rec[syn];delete rec[syn];}});
+  // 3) Weight memory — union the picker values onto the canonical name (sorted, capped at 15 like setData).
+  for(const syn in MERGE){const c=MERGE[syn];if(!Array.isArray(weightMemory[syn]))continue;
+    const m=[...new Set([...(weightMemory[c]||[]),...weightMemory[syn]])].sort((a,b)=>a-b);
+    weightMemory[c]=m.length>15?m.slice(-15):m;delete weightMemory[syn];}
+  programs._upperMergeTracking=true;save();
+}
 
 // ─── STATE ───
 let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false,infoEx:null,
