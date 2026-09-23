@@ -713,7 +713,11 @@ if(!programs._upperMergeTracking){
 // ─── STATE ───
 let V={view:'home',date:new Date(),day:null,openEx:null,curSet:0,showVol:false,showData:false,showAdd:false,addFilter:'',restSec:0,restDur:90,restOn:false,reorder:false,infoEx:null,
   editWorkout:null,newProgOpen:false,addWkOpen:false,exEditIdx:null,wkEditOpen:false};
-function dk(){return V.date.toISOString().split('T')[0]}
+// Local calendar date as YYYY-MM-DD. NEVER use toISOString() for a date key: it converts to UTC, so an
+// evening session west of UTC (ET/PT) rolls into the next day and gets filed under tomorrow. This matches
+// isToday()'s local-parts comparison so the "TODAY" glow and the stored date key never disagree.
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function dk(){return isoDate(V.date)}
 function sess(){return history[dk()]||{}}
 function exSets(n){return sess()[n]||[]}
 function fmtDate(d){const m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],w=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];return w[d.getDay()]+', '+m[d.getMonth()]+' '+d.getDate()}
@@ -905,7 +909,7 @@ function weeklyVol(){
 // you tap Finish in its session (so substitutions count — it credits the session, not exercise names).
 // "New cycle" clears the checklist and stamps a fresh start date (which the volume rollup counts from),
 // so the routine advances only when you decide the set is complete — never on a calendar boundary.
-function weekStartISO(){const n=new Date();const s=new Date(n.getFullYear(),n.getMonth(),n.getDate()-n.getDay());return s.toISOString().split('T')[0]}
+function weekStartISO(){const n=new Date();const s=new Date(n.getFullYear(),n.getMonth(),n.getDate()-n.getDay());return isoDate(s)}
 function progCycle(p){p=p||activeProg();if(!p.cycle||typeof p.cycle!=='object')p.cycle={done:{},startISO:weekStartISO(),n:1};
   if(!p.cycle.done||typeof p.cycle.done!=='object')p.cycle.done={};if(p.cycle.startISO==null)p.cycle.startISO=weekStartISO();return p.cycle}
 function isWorkoutDone(dn){return !!progCycle().done[dn]}
@@ -1575,7 +1579,7 @@ async function exportXlsx(){
     while(ws2<=last){const we=new Date(ws2);we.setDate(ws2.getDate()+6);const vol={};
       dates.forEach(d=>{const dt=new Date(d+'T12:00:00');if(dt>=ws2&&dt<=we)Object.keys(history[d]).forEach(ex=>{if(ex.startsWith('_'))return;
         (MUSCLE_MAP[ex]||[]).forEach(m=>{const sets=Array.isArray(history[d][ex])?history[d][ex].filter(s=>s.weight||s.reps):[];vol[m]=(vol[m]||0)+sets.length})})});
-      vr.push([ws2.toISOString().split('T')[0],...volCols.map(m=>vol[m]||0)]);ws2.setDate(ws2.getDate()+7)}}
+      vr.push([isoDate(ws2),...volCols.map(m=>vol[m]||0)]);ws2.setDate(ws2.getDate()+7)}}
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(vr),'Weekly Volume');
   // Best set by estimated 1RM (Epley), matching the in-app ALL-TIME PR so the sheet agrees with the app.
   const pr=[['Exercise','Weight','Reps','Date','Est. 1RM','Muscles']];const pm={};
