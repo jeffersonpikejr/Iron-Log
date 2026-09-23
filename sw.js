@@ -1,4 +1,4 @@
-const CACHE = 'ironlog-v28';
+const CACHE = 'ironlog-v29';
 // Same-origin app shell — cached atomically on install (all must succeed).
 const CORE = [
   './',

@@ -130,7 +130,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v28'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v29'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -680,8 +680,19 @@ function save(){const ok=[LS.set('history',history),LS.set('customs',customExerc
 // point of the request. The paired names share a muscle group, so the volume/PR rollups are unchanged. The
 // merge is a non-destructive UNION (sets are moved, or appended when both names have data on one date — never
 // overwritten or dropped), and the whole pass is flag-guarded + idempotent (runs once).
+// SYNONYM_CANON is the single source of truth for these renames — reused by the one-shot migration below AND by
+// foldSynonyms(), which importJson() runs so restoring a pre-merge backup can't re-split the data under old names.
+const SYNONYM_CANON={'Neutral-Grip Pull-Ups':'Pull-Ups','Chest-Supported Row':'Seated Cable Row'};
+function foldSynonyms(hist,wmem){const M=SYNONYM_CANON;
+  if(hist&&typeof hist==='object')Object.keys(hist).forEach(d=>{const rec=hist[d];if(!rec||typeof rec!=='object')return;
+    for(const syn in M){const c=M[syn];if(!Array.isArray(rec[syn]))continue;
+      rec[c]=Array.isArray(rec[c])?rec[c].concat(rec[syn]):rec[syn];delete rec[syn];}}); // history: move/append onto canonical
+  if(wmem&&typeof wmem==='object')for(const syn in M){const c=M[syn];if(!Array.isArray(wmem[syn]))continue;
+    const m=[...new Set([...(wmem[c]||[]),...wmem[syn]])].sort((a,b)=>a-b);
+    wmem[c]=m.length>15?m.slice(-15):m;delete wmem[syn];} // weight memory: union, sorted, capped at 15
+}
 if(!programs._upperMergeTracking){
-  const MERGE={'Neutral-Grip Pull-Ups':'Pull-Ups','Chest-Supported Row':'Seated Cable Row'};
+  const MERGE=SYNONYM_CANON;
   // 1) Program definitions — rename in every seeded program's days, keeping the saved per-day order in sync.
   //    If a day already carries the canonical name, drop the duplicate synonym entry (its logged sets are
   //    preserved by the history merge in step 2).
@@ -698,15 +709,8 @@ if(!programs._upperMergeTracking){
   const uaPull=((programs.list[PLAN3x3_ID]||{}).days||{});
   const uaEx=(uaPull['Mon - Upper A']||{}).exercises||[];const up=uaEx.find(e=>e.name==='Pull-Ups');
   if(up&&up.rx==='2 × 6–10 | 1–2 RIR')up.rx="2 × 6–10 | 1–2 RIR (straight or neutral grip — whichever's comfortable)";
-  // 2) Logged history — move each synonym's sets onto the canonical name per date; append (union) when both
-  //    exist on one date so no session's sets are lost. Meta keys (_day/_extras/_recovery/…) are untouched.
-  Object.keys(history).forEach(d=>{const rec=history[d];if(!rec||typeof rec!=='object')return;
-    for(const syn in MERGE){const c=MERGE[syn];if(!Array.isArray(rec[syn]))continue;
-      rec[c]=Array.isArray(rec[c])?rec[c].concat(rec[syn]):rec[syn];delete rec[syn];}});
-  // 3) Weight memory — union the picker values onto the canonical name (sorted, capped at 15 like setData).
-  for(const syn in MERGE){const c=MERGE[syn];if(!Array.isArray(weightMemory[syn]))continue;
-    const m=[...new Set([...(weightMemory[c]||[]),...weightMemory[syn]])].sort((a,b)=>a-b);
-    weightMemory[c]=m.length>15?m.slice(-15):m;delete weightMemory[syn];}
+  // 2) Logged history + 3) weight memory — fold each synonym onto its canonical name (non-destructive union).
+  foldSynonyms(history,weightMemory);
   programs._upperMergeTracking=true;save();
 }
 
@@ -838,11 +842,15 @@ function setCardio(exName,field,val){
   history[d][exName][0].type='cardio';
   save();
 }
+// A set is "real logged data" if it carries a weight (INCLUDING an explicit 0 — bodyweight/assisted lifts
+// seed 0), reps (a strength set logged without load), or a cardio duration. Plain truthiness dropped weight-0
+// sets, which desynced getPrev/preview/getWeights from getPR (which DOES rank 0-load PRs via the rep tiebreak).
+function loggedSet(s){return !!(s&&(s.weight||s.weight===0||s.reps||s.duration))}
 function getPrev(exName){
   const d=dk();
   for(const k of Object.keys(history).sort().reverse()){
     if(k===d)continue;const s=history[k]?.[exName];
-    if(s?.length>0&&(s[0].weight||s[0].duration))return{date:k,sets:s}}
+    if(s?.length>0&&loggedSet(s[0]))return{date:k,sets:s}}
   return null;
 }
 // Notes for the ⓘ popup: the most recent PRIOR day this exercise carries a real note. Scans history
@@ -865,7 +873,9 @@ function lastNotes(exName){
 // displayed "75lb × 12 reps" is always a real entry, never a computed number.
 function getPR(exName){
   let best=null,bestE=-1,bestR=-1;
-  Object.keys(history).forEach(d=>{const s=history[d]?.[exName];if(!Array.isArray(s))return;
+  // Iterate dates sorted so an exact e1RM+reps tie deterministically keeps the EARLIEST date (when the PR was
+  // first hit) — and so this matches the Excel export's PR sheet, which iterates sorted dates.
+  Object.keys(history).sort().forEach(d=>{const s=history[d]?.[exName];if(!Array.isArray(s))return;
     s.forEach(set=>{const w=parseFloat(set.weight);if(isNaN(w))return;
       const r=parseFloat(set.reps),reps=isNaN(r)?1:r,e1rm=w*(1+reps/30);
       if(e1rm>bestE||(e1rm===bestE&&reps>bestR)){bestE=e1rm;bestR=reps;best={weight:w,reps:set.reps||'?',date:d}}})});
@@ -881,8 +891,9 @@ function getWeights(exName){
   today.forEach(s=>{const w=parseFloat(s.weight);if(!isNaN(w)&&!base.includes(w))base.push(w)});
   base=[...new Set(base)].sort((a,b)=>a-b);
   if(base.length>12){
-    const recent=today.length>0?parseFloat(today[today.length-1].weight):(prev?.sets[0]?.weight?parseFloat(prev.sets[0].weight):null);
-    if(recent){base.sort((a,b)=>Math.abs(a-recent)-Math.abs(b-recent));base=base.slice(0,12).sort((a,b)=>a-b)}
+    let recent=today.length>0?parseFloat(today[today.length-1].weight):NaN;
+    if(isNaN(recent)&&prev&&prev.sets[0]!=null)recent=parseFloat(prev.sets[0].weight); // fall back to last session
+    if(!isNaN(recent)){base.sort((a,b)=>Math.abs(a-recent)-Math.abs(b-recent));base=base.slice(0,12).sort((a,b)=>a-b)} // 0 is a valid center (bodyweight)
     else base=base.slice(-12);
   }
   return base;
@@ -1138,7 +1149,7 @@ function renderSession(app){
     const isOpen=V.openEx===i&&!V.reorder;
     const sets=exSets(ex.name);
     const hasData=sets.length>0&&(sets[0].weight||sets[0].reps||sets[0].notes||sets[0].duration);
-    const preview=hasData&&ex.type==='strength'?sets.filter(s=>s.weight).map(s=>s.weight+'×'+(s.reps||'?')).join(' → '):'';
+    const preview=hasData&&ex.type==='strength'?sets.filter(loggedSet).map(s=>(s.weight||s.weight===0?s.weight:'')+'×'+(s.reps||'?')).join(' → '):'';
     // Prescription/sets layer: block override → recovery override (recovery wins when a day is flagged).
     const bRx=blockRxFor(ex);let rxShown=bRx||ex.rx;
     if(rec){const lr=liteRx(ex);if(lr)rxShown=lr;}
@@ -1352,16 +1363,20 @@ function renderAddList(ap,allEx){
   c.appendChild(ol);
 }
 function addExtra2(name,type){
-  const d=dk();if(!history[d])history[d]={_day:V.day};if(history[d]._day==null&&V.day)history[d]._day=V.day;
   // "Add to workout" checked → make it a permanent part of THIS workout's template (shows every session).
+  // This path edits the program, NOT the day's session, so it must NOT create a history record.
   if(V.addPermanent){
     const ok=addWorkoutExercise(V.day,{name,rx:'',type:type||'strength',sets:(type==='cardio'||type==='mobility')?1:2});
     if(ok===false)return; // duplicate (toast already shown)
     V.showAdd=false;V.addFilter='';V.addPermanent=false;toast(name+' added to workout');render();return;
   }
   // Otherwise a transient extra: just for this workout, this day (does not persist to other days/workouts).
+  // Create the day's session record only once we're committing a genuinely new extra (after the dup check),
+  // so nothing here can strand a {_day}-only phantom session on a day you never actually logged.
+  const d=dk();
+  if(history[d]&&history[d]._extras&&history[d]._extras.find(e=>e.name===name&&(e.day||V.day)===V.day))return;
+  if(!history[d])history[d]={_day:V.day};if(history[d]._day==null&&V.day)history[d]._day=V.day;
   if(!history[d]._extras)history[d]._extras=[];
-  if(history[d]._extras.find(e=>e.name===name&&(e.day||V.day)===V.day))return;
   history[d]._extras.push({name,rx:'Custom',type:type||'strength',sets:3,day:V.day});
   if(!customExercises.includes(name)&&!COMMON_EXTRAS.includes(name))customExercises.push(name);
   V.showAdd=false;V.addFilter='';save();toast(name+' added (this session)');render();}
@@ -1545,6 +1560,7 @@ function importJson(){const inp=document.createElement('input');inp.type='file';
       if(d.customExercises)customExercises=[...new Set([...customExercises,...d.customExercises])];
       if(d.weightMemory)Object.keys(d.weightMemory).forEach(k=>{if(!weightMemory[k])weightMemory[k]=d.weightMemory[k];else weightMemory[k]=[...new Set([...weightMemory[k],...d.weightMemory[k]])].sort((a,b)=>a-b)});
       if(d.exerciseOrder)Object.keys(d.exerciseOrder).forEach(k=>{if(!exerciseOrder[k])exerciseOrder[k]=d.exerciseOrder[k]});
+      foldSynonyms(history,weightMemory); // canonicalize any pre-merge synonym data just imported, so a restored backup can't re-split Pull-Ups / Seated Cable Row
       if(d.programs&&d.programs.list){const idMap={};
         Object.keys(d.programs.list).forEach(id=>{const p=d.programs.list[id];if(!p||typeof p!=='object')return;
           let nid=id;if(programs.list[nid]){nid=uid('prog');p.name=(p.name||'Program')+' (imported)'} // rename on id collision (e.g. seed id) instead of dropping
@@ -1584,7 +1600,8 @@ async function exportXlsx(){
   // Best set by estimated 1RM (Epley), matching the in-app ALL-TIME PR so the sheet agrees with the app.
   const pr=[['Exercise','Weight','Reps','Date','Est. 1RM','Muscles']];const pm={};
   dates.forEach(d=>{Object.keys(history[d]).forEach(ex=>{if(ex.startsWith('_'))return;
-    (history[d][ex]||[]).forEach(s=>{const w=parseFloat(s.weight);if(isNaN(w))return;
+    const exSetsArr=history[d][ex];if(!Array.isArray(exSetsArr))return; // guard like the sibling sheets, so a corrupt non-array value can't abort the whole export
+    exSetsArr.forEach(s=>{const w=parseFloat(s.weight);if(isNaN(w))return;
       const r=parseFloat(s.reps),reps=isNaN(r)?1:r,e=w*(1+reps/30);
       if(!pm[ex]||e>pm[ex].e||(e===pm[ex].e&&reps>pm[ex].reps))pm[ex]={w,r:s.reps||'',d,e,reps}})})});
   Object.keys(pm).sort().forEach(ex=>pr.push([ex,pm[ex].w,pm[ex].r,pm[ex].d,Math.round(pm[ex].e*10)/10,(MUSCLE_MAP[ex]||[]).join(', ')]));
