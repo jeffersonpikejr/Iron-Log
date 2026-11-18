@@ -130,7 +130,7 @@ textarea.inp{font:14px -apple-system,sans-serif;resize:vertical}
 <body>
 <div id="app"></div>
 <script>
-const APP_VERSION='v29'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
+const APP_VERSION='v30'; // shown in the header + settings panel. Keep in sync with CACHE in sw.js.
 const DEFAULT_WORKOUTS = {
   "Day 1 - Zone 2 + Arms/Delts": {
     color:"#2563eb",icon:"🫁",exercises:[
@@ -898,6 +898,23 @@ function getWeights(exName){
   }
   return base;
 }
+// Rep quick-picks learn per lift, like the weight row: the standard counts plus every rep count ever logged
+// for this exercise, so an odd count (9, 11, 13…) is one tap after you've used it once. Read straight from
+// history rather than a separate memory store, so it already covers everything logged, follows import and
+// the synonym merge for free, and a typo you corrected doesn't linger as a button. Capped at 12 like the
+// weight row, keeping the counts nearest the one in play: this set's reps (`focus`), else the latest logged
+// on/before the viewed day — so the current set's value is always on screen to highlight.
+const REP_OPTS=[3,4,5,6,7,8,10,12,15,20];
+function repNum(r){const n=parseInt(r,10);return n>0?n:0}
+function getReps(exName,focus){
+  const d=dk(),seen=new Set(REP_OPTS);let near=0,any=0;
+  Object.keys(history).sort().forEach(k=>{const s=history[k]?.[exName];if(!Array.isArray(s))return;
+    s.forEach(set=>{const n=repNum(set&&set.reps);if(!n)return;seen.add(n);any=n;if(k<=d)near=n})});
+  let base=[...seen].sort((a,b)=>a-b);
+  const c=repNum(focus)||near||any;
+  if(base.length>12&&c){base.sort((a,b)=>Math.abs(a-c)-Math.abs(b-c));base=base.slice(0,12).sort((a,b)=>a-b)}
+  return base;
+}
 // Sun→Sat window for the week containing `date`, anchored to LOCAL midnight so it never depends on
 // the current time of day. (The old version carried V.date's time into the bounds, which dropped
 // same-week Sunday sets whenever the app was opened after noon.) Logged days compare at noon.
@@ -1244,7 +1261,7 @@ function renderSession(app){
         // Reps
         panel.appendChild(h('label',{class:'field-label'},'REPS'));
         const rr=h('div',{class:'quick-row'});
-        [3,4,5,6,7,8,10,12,15,20].forEach(v=>{const b=h('button',{class:'q-btn'+(cur.reps==v?' on':''),style:{minWidth:'36px'},onClick:()=>{
+        getReps(ex.name,cur.reps).forEach(v=>{const b=h('button',{class:'q-btn'+(cur.reps==v?' on':''),style:{minWidth:'36px'},onClick:()=>{
           setData(ex.name,V.curSet,'reps',v);rr.querySelectorAll('.q-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
           const ci=panel.querySelector('.reps-custom');if(ci)ci.value=v}},String(v));rr.appendChild(b)});
         panel.appendChild(rr);
