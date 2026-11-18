@@ -8,6 +8,7 @@ A fast, offline-first **hybrid-athlete gym tracker** — log strength work and c
 
 - **Day-by-day logging** — sets, weight, reps, RIR for lifts; duration / speed / elevation for cardio
 - **Per-exercise references** — last session + PRs surfaced inline as you log
+- **Quick-picks that learn** — every weight and rep count you've logged for a lift becomes a one-tap button for that lift, so odd counts (9, 11, 13…) don't need retyping
 - **Custom exercises** and reorderable exercise lists
 - **Routine-cycle tracking** — day-agnostic. Tap **Finish workout** in a session to check it off for the current cycle; **Start new cycle** when your rotation's done. No calendar-week reset, so it doesn't matter which weekday you train.
 - **Volume rollups** by muscle group (all worked muscles — push, pull, legs, traps, calves & core) counted **for the current cycle**, plus an **all-time PR** sheet
